@@ -170,6 +170,21 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .task-add-btn svg{width:14px;height:14px;color:var(--text)}
 .task-add-time{width:60px;font-size:11px;padding:3px 6px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-2)}
 .day-empty{text-align:center;padding:16px;font-size:12px;color:var(--text-4)}
+.insp-list{display:flex;flex-direction:column;gap:6px}
+.insp-item{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;background:var(--bg-2);border-radius:var(--r-sm);border-left:3px solid var(--accent);transition:var(--t)}
+.insp-item:hover{background:var(--bg-3)}
+.insp-text{flex:1;font-size:13px;line-height:1.5;word-break:break-word;cursor:text}
+.insp-text[contenteditable=true]:focus{outline:none;background:var(--bg-3);border-radius:3px;padding:0 4px}
+.insp-time{font-size:10px;color:var(--text-4);flex-shrink:0;margin-top:2px}
+.insp-actions{display:flex;gap:4px;flex-shrink:0;opacity:0;transition:var(--t)}
+.insp-item:hover .insp-actions{opacity:1}
+.insp-btn{width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:4px;border:1px solid var(--border);color:var(--text-3);cursor:pointer;transition:var(--t);font-size:11px}
+.insp-btn:hover{border-color:var(--accent);color:var(--accent)}
+.insp-btn.del:hover{border-color:var(--danger);color:var(--danger)}
+.insp-btn svg{width:12px;height:12px}
+.insp-add{display:flex;gap:6px;margin-top:8px}
+.insp-add-input{flex:1;font-size:13px;padding:6px 10px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm)}
+.insp-add-input:focus{border-color:var(--accent);outline:none}
 
 /* ========== Monthly ========== */
 .monthly-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -571,6 +586,7 @@ const KEYS={
   weekly:PREFIX+'weekly',
   cases:PREFIX+'cases',
   strategy:PREFIX+'strategy',
+  inspirations:PREFIX+'inspirations',
   settings:PREFIX+'settings',
   backup:PREFIX+'backup',
   init:PREFIX+'init',
@@ -827,7 +843,7 @@ function saveSyncConfig(){
 }
 
 /* ========== Store ========== */
-const DATA_KEYS=['monthly','weekly','cases','strategy','settings'];
+const DATA_KEYS=['monthly','weekly','cases','strategy','inspirations','settings'];
 function isPlainObject(value){return !!value&&typeof value==='object'&&!Array.isArray(value)}
 function isValidLocalDateString(value){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(String(value||'')))return false;
@@ -839,12 +855,14 @@ function validateModule(name,value){
   if(name==='weekly')return Array.isArray(value)&&value.every(week=>isPlainObject(week)&&isValidLocalDateString(week.weekStart)&&Array.isArray(week.tasks)&&week.tasks.every(task=>isPlainObject(task)&&Number.isInteger(Number(task.day))&&Number(task.day)>=1&&Number(task.day)<=7));
   if(name==='cases')return isPlainObject(value)&&Array.isArray(value.cases)&&value.cases.every(item=>isPlainObject(item)&&isValidLocalDateString(item.date));
   if(name==='strategy')return isPlainObject(value)&&Array.isArray(value.goals)&&Array.isArray(value.fixedActions)&&Array.isArray(value.topics);
+  if(name==='inspirations')return Array.isArray(value)&&value.every(i=>isPlainObject(i));
   if(name==='settings')return isPlainObject(value);
   return false;
 }
 function validateData(data){
   if(!isPlainObject(data)||!validateModule('monthly',data.monthly)||!validateModule('weekly',data.weekly)||!validateModule('cases',data.cases)||!validateModule('strategy',data.strategy))throw new Error('备份缺少完整且有效的计划数据');
   if(data.settings!==undefined&&!validateModule('settings',data.settings))throw new Error('设置数据格式不正确');
+  if(data.inspirations!==undefined&&!validateModule('inspirations',data.inspirations))throw new Error('灵感池数据格式不正确');
   return true;
 }
 function cloneData(data){return JSON.parse(JSON.stringify(data))}
@@ -869,7 +887,7 @@ const Store={
     backup.snapshots=backup.snapshots.slice(-MAX_BACKUP_SNAPSHOTS);
     localStorage.setItem(KEYS.backup,JSON.stringify(backup));
   },
-  currentData(){return{monthly:this.get(KEYS.monthly,{boards:[]}),weekly:this.get(KEYS.weekly,[]),cases:this.get(KEYS.cases,{cases:[]}),strategy:this.get(KEYS.strategy,{goals:[],fixedActions:[],topics:[]}),settings:this.get(KEYS.settings,{lastBackupReminder:0,lastExport:0})}},
+  currentData(){return{monthly:this.get(KEYS.monthly,{boards:[]}),weekly:this.get(KEYS.weekly,[]),cases:this.get(KEYS.cases,{cases:[]}),strategy:this.get(KEYS.strategy,{goals:[],fixedActions:[],topics:[]}),inspirations:this.get(KEYS.inspirations,[]),settings:this.get(KEYS.settings,{lastBackupReminder:0,lastExport:0})}},
   set(key,val){
     try{
       const str=JSON.stringify(val);
@@ -1016,7 +1034,7 @@ const CloudSync={
   },
   applyRemote(data){
     this.applyingRemote=true;
-    try{Store.set(KEYS.monthly,data.monthly);Store.set(KEYS.weekly,data.weekly);Store.set(KEYS.cases,data.cases);Store.set(KEYS.strategy,data.strategy);if(data.settings)Store.set(KEYS.settings,data.settings)}
+    try{Store.set(KEYS.monthly,data.monthly);Store.set(KEYS.weekly,data.weekly);Store.set(KEYS.cases,data.cases);Store.set(KEYS.strategy,data.strategy);if(data.inspirations)Store.set(KEYS.inspirations,data.inspirations);if(data.settings)Store.set(KEYS.settings,data.settings)}
     finally{this.applyingRemote=false}
     loadState();renderAll();
   },
@@ -1060,7 +1078,7 @@ const CloudSync={
 function applySyncUrlParams(){try{const p=new URLSearchParams(location.search);const o=p.get('sync_owner'),r=p.get('sync_repo'),t=p.get('sync_token'),m=p.get('sync_room');if(o||r||t||m){CloudSync.loadConfig();if(o)CloudSync.config.owner=o;if(r)CloudSync.config.repo=r;if(t&&t.length>=20)CloudSync.config.token=t;if(m)CloudSync.config.roomId=m.toUpperCase();CloudSync.saveConfig();history.replaceState(null,'',location.pathname)}}catch(e){}}
 
 /* ========== State ========== */
-let state={currentTab:'today',weekOffset:0,monthly:{},weekly:[],cases:{},strategy:{},settings:{}};
+let state={currentTab:'today',weekOffset:0,monthly:{},weekly:[],cases:{},strategy:{},inspirations:[],settings:{}};
 
 function loadState(){
   state.monthly=Store.get(KEYS.monthly,{boards:[]});
@@ -1068,12 +1086,14 @@ function loadState(){
   state.weekly.forEach(week=>{if(week&&week.weekStart)week.weekKey=normalizeWeekKey(week.weekKey,week.weekStart)});
   state.cases=Store.get(KEYS.cases,{cases:[]});
   state.strategy=Store.get(KEYS.strategy,{goals:[],fixedActions:[],topics:[]});
+  state.inspirations=Store.get(KEYS.inspirations,[]);
   state.settings=Store.get(KEYS.settings,{lastBackupReminder:0,lastExport:0});
 }
 function saveMonthly(){Store.set(KEYS.monthly,state.monthly)}
 function saveWeekly(){Store.set(KEYS.weekly,state.weekly)}
 function saveCases(){Store.set(KEYS.cases,state.cases)}
 function saveStrategy(){Store.set(KEYS.strategy,state.strategy)}
+function saveInspirations(){Store.set(KEYS.inspirations,state.inspirations)}
 function saveSettings(){Store.set(KEYS.settings,state.settings)}
 
 /* ========== Demo Data ========== */
@@ -1298,7 +1318,6 @@ function renderToday(){
   
   // Collect all tasks
   const overdueItems=[];
-  const todayItems=[];
   
   state.weekly.forEach(week=>{
     const weekMonday=getMonday(parseLocalDate(week.weekStart));
@@ -1325,8 +1344,6 @@ function renderToday(){
       
       if(diff<0){
         overdueItems.push(item);
-      }else if(diff===0){
-        todayItems.push(item);
       }
     });
   });
@@ -1354,7 +1371,7 @@ function renderToday(){
   let html='';
   
   // Section header
-  html+='<div class="section-header"><div><div class="section-title">今日要处理</div><div class="section-sub">逾期 · 今天</div></div></div>';
+  html+='<div class="section-header"><div><div class="section-title">今日要处理</div><div class="section-sub">逾期 · 灵感池</div></div></div>';
   
   // Stats
   html+='<div class="today-stats">';
@@ -1374,20 +1391,32 @@ function renderToday(){
     html+='</div></div>';
   }
   
-  // Today
-  html+='<div class="today-banner">';
-  html+='<div class="today-banner-title">'+ICONS.today+' 今天要处理 <span class="count">('+todayItems.length+'项)</span></div>';
-  if(todayItems.length===0){
-    html+='<div class="day-empty">今天暂无待办，保持节奏</div>';
+  // Inspiration pool (灵感池)
+  html+='<div class="today-banner" style="border-color:rgba(82,183,136,.2);background:linear-gradient(135deg,rgba(82,183,136,.05),var(--bg-2))">';
+  html+='<div class="today-banner-title" style="color:var(--accent)">'+ICONS.sparkles+' 灵感池 <span class="count">('+state.inspirations.length+'条)</span></div>';
+  html+='<div style="font-size:12px;color:var(--text-3);margin-bottom:10px">工作中冒出的想法先存这里，不干扰当前计划，空时再评估是否排入周计划</div>';
+  if(state.inspirations.length===0){
+    html+='<div class="day-empty">暂无灵感，随时记录闪现的想法</div>';
   }else{
-    html+='<div class="today-list">';
-    todayItems.forEach(item=>{
-      html+=renderTodayItem(item,'today');
+    html+='<div class="insp-list">';
+    state.inspirations.forEach(ins=>{
+      html+='<div class="insp-item" data-id="'+ins.id+'">'+
+        '<span class="insp-text" contenteditable="true" data-id="'+ins.id+'">'+escapeHtml(ins.text)+'</span>'+
+        '<span class="insp-time">'+(ins.createdAt?fmtDateShort(new Date(ins.createdAt)):'')+'</span>'+
+        '<div class="insp-actions">'+
+          '<button type="button" class="insp-btn" aria-label="转入本周计划" data-id="'+ins.id+'" title="转入本周计划">'+ICONS.weekly+'</button>'+
+          '<button type="button" class="insp-btn del" aria-label="删除灵感" data-id="'+ins.id+'" title="删除">'+ICONS.trash+'</button>'+
+        '</div>'+
+      '</div>';
     });
     html+='</div>';
   }
+  html+='<div class="insp-add">'+
+    '<input type="text" class="insp-add-input" placeholder="记录一个灵感…" onkeydown="if(event.key===\'Enter\')addInspiration()">'+
+    '<button class="btn btn-primary btn-sm" onclick="addInspiration()">记下</button>'+
+  '</div>';
   html+='</div>';
-  
+
   document.getElementById('view-today').innerHTML=html;
   
   // Bind quick-complete
@@ -1400,6 +1429,22 @@ function renderToday(){
       }
     });
   });
+  // Bind inspiration actions
+  document.querySelectorAll('#view-today .insp-btn.del').forEach(el=>{
+    el.addEventListener('click',()=>deleteInspiration(el.dataset.id));
+  });
+  document.querySelectorAll('#view-today .insp-btn:not(.del)').forEach(el=>{
+    el.addEventListener('click',()=>inspirationToWeekly(el.dataset.id));
+  });
+  document.querySelectorAll('#view-today .insp-text[contenteditable]').forEach(el=>{
+    let orig=el.textContent;
+    el.addEventListener('blur',()=>{
+      const v=el.textContent.trim();
+      if(v&&v!==orig){editInspirationText(el.dataset.id,v);orig=v;}
+      else if(!v){el.textContent=orig;}
+    });
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}});
+  });
 }
 
 function renderTodayItem(item,cls){
@@ -1410,6 +1455,55 @@ function renderTodayItem(item,cls){
     '<span class="today-item-type" style="color:'+item.typeColor+';background:'+item.typeColor+'1a">'+item.typeLabel+'</span>'+
     '<button type="button" class="today-quick '+(done?'done':'')+'" aria-label="标记 '+escapeHtml(item.text)+' 完成" data-week-key="'+item.weekKey+'" data-task-id="'+item.taskId+'" data-case-id="'+(item.caseId||'')+'">'+ICONS.check+'</button>'+
     '</div>';
+}
+
+/* ========== Inspiration Pool (灵感池) ========== */
+function addInspiration(){
+  const input=document.querySelector('#view-today .insp-add-input');
+  if(!input)return;
+  const text=input.value.trim();
+  if(!text){showToast('请输入灵感内容','warning');return;}
+  state.inspirations.unshift({id:uid(),text,createdAt:new Date().toISOString()});
+  saveInspirations();
+  renderToday();
+  checkBackupReminder();
+  input.value='';
+}
+
+function deleteInspiration(id){
+  state.inspirations=state.inspirations.filter(i=>i.id!==id);
+  saveInspirations();
+  renderToday();
+  showToast('已删除','success');
+}
+
+function editInspirationText(id,newText){
+  const ins=state.inspirations.find(i=>i.id===id);
+  if(!ins)return;
+  ins.text=newText;
+  saveInspirations();
+}
+
+function inspirationToWeekly(id){
+  const ins=state.inspirations.find(i=>i.id===id);
+  if(!ins)return;
+  // Add to current week, today
+  const todayKey=getWeekKey(new Date());
+  let week=state.weekly.find(w=>weekMatches(w,todayKey));
+  if(!week){
+    const monday=getMonday(new Date());
+    week={weekKey:todayKey,weekStart:fmtDate(monday),tasks:[]};
+    state.weekly.push(week);
+  }
+  const todayDay=new Date().getDay()||7;
+  week.tasks.push({id:uid(),day:todayDay,text:ins.text,type:'work',done:false,important:false,time:''});
+  saveWeekly();
+  // Remove from inspirations
+  state.inspirations=state.inspirations.filter(i=>i.id!==id);
+  saveInspirations();
+  renderToday();
+  renderWeekly();
+  showToast('已转入本周'+DAY_NAMES[todayDay-1]+'待办','success');
 }
 
 /* ========== Monthly Module ========== */
@@ -2640,6 +2734,7 @@ function getTotalCount(){
   state.weekly.forEach(w=>count+=w.tasks.length);
   count+=state.cases.cases.length;
   count+=state.strategy.goals.length+state.strategy.fixedActions.length+state.strategy.topics.length;
+  count+=state.inspirations.length;
   return count;
 }
 
@@ -2676,6 +2771,7 @@ function exportJSON(){
     weekly:state.weekly,
     cases:state.cases,
     strategy:state.strategy,
+    inspirations:state.inspirations,
     settings:state.settings
   };
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
@@ -2703,7 +2799,7 @@ function importJSON(event){
       // Version 1 exports contain the same four data modules but no format/settings.
       if(payload.version!==1&&payload.version!==BACKUP_VERSION)throw new Error('不支持的备份版本');
       if(payload.version===BACKUP_VERSION&&payload.format!==BACKUP_FORMAT)throw new Error('备份格式标识不正确');
-      const data={monthly:payload.monthly,weekly:payload.weekly,cases:payload.cases,strategy:payload.strategy,settings:payload.settings||state.settings};
+      const data={monthly:payload.monthly,weekly:payload.weekly,cases:payload.cases,strategy:payload.strategy,inspirations:payload.inspirations||[],settings:payload.settings||state.settings};
       Store.commitImport(data);
       loadState();
       renderAll();
