@@ -811,6 +811,7 @@ function saveSyncConfig(){
   if(!owner){showToast('请填写 GitHub 用户名','error');return}
   if(!repo){showToast('请填写仓库名','error');return}
   if(!token){showToast('请填写 Personal Token','error');return}
+  if(token.length<20){showToast('Token 不完整（需约40字符），请复制完整 token','error');return}
   if(!room||room.length<4){showToast('请填写房间码（至少4位）','error');return}
   if(!CloudSync.hasSecret()&&(!secret||secret.length<6)){showToast('请设置同步密码（至少6位）','error');return}
   CloudSync.config.owner=owner;
@@ -1056,7 +1057,7 @@ const CloudSync={
   },
   disconnect(){this.stopPoll();this.cryptoKey=null;this.setStatus('local')}
 };
-function applySyncUrlParams(){try{const p=new URLSearchParams(location.search);const o=p.get('sync_owner'),r=p.get('sync_repo'),t=p.get('sync_token'),m=p.get('sync_room');if(o||r||t||m){CloudSync.loadConfig();if(o)CloudSync.config.owner=o;if(r)CloudSync.config.repo=r;if(t)CloudSync.config.token=t;if(m)CloudSync.config.roomId=m.toUpperCase();CloudSync.saveConfig();history.replaceState(null,'',location.pathname)}}catch(e){}}
+function applySyncUrlParams(){try{const p=new URLSearchParams(location.search);const o=p.get('sync_owner'),r=p.get('sync_repo'),t=p.get('sync_token'),m=p.get('sync_room');if(o||r||t||m){CloudSync.loadConfig();if(o)CloudSync.config.owner=o;if(r)CloudSync.config.repo=r;if(t&&t.length>=20)CloudSync.config.token=t;if(m)CloudSync.config.roomId=m.toUpperCase();CloudSync.saveConfig();history.replaceState(null,'',location.pathname)}}catch(e){}}
 
 /* ========== State ========== */
 let state={currentTab:'today',weekOffset:0,monthly:{},weekly:[],cases:{},strategy:{},settings:{}};
