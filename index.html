@@ -81,6 +81,8 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
 .section-title{font-size:20px;font-weight:600;letter-spacing:.5px}
 .section-sub{font-size:13px;color:var(--text-3);margin-top:2px}
+.module-subtitle[contenteditable=true]{display:block;cursor:text;border-radius:3px;min-width:3em}.module-subtitle[contenteditable=true]:hover{background:var(--bg-2);color:var(--text-2)}.module-subtitle[contenteditable=true]:focus{outline:none;background:var(--bg-3);color:var(--text-2);padding:0 3px}
+#view-monthly .section-sub .module-subtitle[contenteditable=true]{display:inline}
 
 /* ========== Today ========== */
 .today-banner{background:linear-gradient(135deg,var(--bg-2),var(--bg-3));border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;margin-bottom:20px}
@@ -124,7 +126,8 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .sunday-alert{background:linear-gradient(135deg,rgba(82,183,136,.08),var(--bg-2));border:1px solid rgba(82,183,136,.25);border-radius:var(--r-md);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .sunday-alert-text{font-size:13px;color:var(--text-2)}
 .sunday-alert-text strong{color:var(--accent)}
-.week-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.week-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;align-items:start}
+.week-grid>.day-card{min-width:0;width:100%}
 .day-card{background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
 .day-card.today-card{border-color:var(--accent);box-shadow:0 0 0 1px rgba(82,183,136,.15)}
 .day-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);background:var(--bg-2)}
@@ -191,6 +194,9 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .board-card{background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;position:relative;overflow:hidden}
 .board-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--board-color,var(--accent))}
 .board-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.board-header .board-name{flex:1;min-width:0}
+.board-delete{opacity:0;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:4px;color:var(--text-4);cursor:pointer;transition:var(--t)}
+.board-card:hover .board-delete{opacity:1}.board-delete:hover{color:var(--danger);background:rgba(231,111,81,.1)}.board-delete svg{width:14px;height:14px}
 .board-icon{width:32px;height:32px;border-radius:var(--r-sm);background:var(--bg-3);display:flex;align-items:center;justify-content:center}
 .board-icon svg{width:18px;height:18px}
 .board-name{font-size:16px;font-weight:600}
@@ -224,6 +230,14 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .goal-add-btn svg{width:12px;height:12px;color:var(--text)}
 .board-method{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--text-3);line-height:1.6}
 .board-method strong{color:var(--text-2)}
+.tree-children{display:flex;flex-direction:column;gap:5px;margin:5px 0 0 18px;padding-left:10px;border-left:1px dashed var(--border-l)}.collapse-region[hidden]{display:none!important}
+.tree-toggle{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 18px;color:var(--text-3);border-radius:4px;transform:rotate(90deg);transition:transform .16s ease}
+.tree-toggle.collapsed{transform:rotate(0deg)}
+.tree-toggle svg{width:14px;height:14px}.tree-toggle.empty{display:none}
+.goal-row:has(> .tree-toggle.empty),.task:has(> .tree-toggle.empty),.case-card:has(> .tree-toggle.empty),.strat-item:has(> .tree-toggle.empty),.topic-item:has(> .tree-toggle.empty){padding-left:5px;gap:6px}
+.tree-add-child{opacity:.55;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:var(--primary);border:1px solid var(--border);border-radius:4px;flex-shrink:0}.tree-add-child:hover{opacity:1;background:var(--bg-3)}.tree-add-child svg{width:12px;height:12px}
+.sort-grip{touch-action:none;user-select:none;cursor:grab}.sort-grip:active{cursor:grabbing}.sort-item.sorting{visibility:hidden}.sort-placeholder{border:2px dashed var(--accent);border-radius:var(--r-sm);background:rgba(82,183,136,.08);min-height:18px;margin:4px 0}.sort-ghost{position:fixed;z-index:1000;pointer-events:none;opacity:.86;box-shadow:0 12px 28px rgba(26,46,38,.22);transform:rotate(1deg);max-width:min(520px,calc(100vw - 24px))}.sort-ghost .tree-children{display:block}.sort-ghost [hidden]{display:block!important}
+.module-sort-grip{margin-right:4px}.module-card{min-width:0}.module-card.sorting{opacity:.45}
 
 /* ========== Cases ========== */
 .case-section{margin-bottom:24px}
@@ -240,6 +254,7 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .case-name{font-size:14px;font-weight:500}
 .case-note{font-size:12px;color:var(--text-3);margin-top:2px}
 .case-date{font-size:12px;color:var(--text-2);margin-top:2px}
+.case-date-input{margin-top:5px;padding:3px 5px;font-size:12px;color:var(--text-2);background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm)}
 .case-countdown{text-align:right;flex-shrink:0;min-width:80px}
 .countdown-num{font-size:20px;font-weight:700}
 .countdown-label{font-size:11px;color:var(--text-3)}
@@ -256,10 +271,12 @@ input:focus,textarea:focus{border-color:var(--accent)}
 /* ========== Strategy ========== */
 .strat-block{margin-bottom:28px}
 .strat-block-title{font-size:15px;font-weight:600;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.strat-block-title-row{display:flex;align-items:center;gap:8px}.strat-block-name{flex:1;min-width:0}.strat-block-del{width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:4px;color:var(--text-3);cursor:pointer;flex-shrink:0}.strat-block-del:hover{color:var(--danger);background:rgba(231,111,81,.1)}
 .strat-list{display:flex;flex-direction:column;gap:6px}
 .strat-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-2);border-radius:var(--r-sm);transition:var(--t)}
 .strat-item:hover{background:var(--bg-3)}
 .strat-item.done .strat-text{text-decoration:line-through;color:var(--text-4)}
+.strat-item.task-important .strat-text,.topic-item.task-important .topic-text{font-weight:600}
 .strat-text{flex:1;font-size:13px}
 .strat-add{display:flex;gap:8px;margin-top:8px}
 .strat-add input{flex:1}
@@ -271,15 +288,13 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .topic-status.idea{background:rgba(74,96,85,.12);color:var(--text-2)}
 .topic-status.writing{background:rgba(212,160,23,.15);color:var(--warning)}
 .topic-status.published{background:rgba(58,157,109,.15);color:var(--success)}
-.topic-del{opacity:0;color:var(--text-4);cursor:pointer;transition:var(--t)}
-.strat-del{opacity:0;width:18px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:3px;color:var(--text-4);transition:var(--t);flex-shrink:0;cursor:pointer}
-.strat-item:hover .strat-del{opacity:1}
+.topic-del,.strat-del{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;color:var(--text-3);cursor:pointer;transition:var(--t);flex-shrink:0}
 .strat-del:hover{color:var(--danger);background:rgba(231,111,81,.1)}
-.strat-del svg{width:11px;height:11px}
+.strat-del svg,.topic-del svg{width:12px;height:12px}
 .strat-item.drag-over,.topic-item.drag-over{border-top:2px solid var(--accent)}
 .strat-item.dragging,.topic-item.dragging{opacity:.4}
-.topic-item:hover .topic-del{opacity:1}
-.topic-del:hover{color:var(--danger)}
+.topic-del:hover{color:var(--danger);background:rgba(231,111,81,.1)}
+.strategy-star{width:16px;height:16px;flex-shrink:0;cursor:pointer;color:var(--text-4);transition:var(--t);display:flex;align-items:center}.strategy-star.active{color:#d4a017}.strategy-star svg{width:14px;height:14px}
 
 /* ========== Modal ========== */
 #modal-root{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:200;padding:20px;overscroll-behavior:contain}
@@ -357,10 +372,9 @@ input:focus,textarea:focus{border-color:var(--accent)}
   .section-sub{font-size:12px}
   #view-strategy{
     grid-column:1/-1;
-    display:grid !important;
-    grid-template-columns:1fr 1fr 1fr;
-    gap:14px;
   }
+  #view-strategy .view-collapse-body{min-width:0}
+  #view-strategy .strategy-grid{display:grid;grid-template-columns:repeat(var(--strategy-columns),minmax(0,1fr));gap:14px;align-items:start;min-width:0}
   #view-strategy .section-header{grid-column:1/-1}
   #view-strategy .strat-block{margin-bottom:0}
   #view-history{
@@ -378,6 +392,17 @@ input:focus,textarea:focus{border-color:var(--accent)}
   .week-nav-bar{flex-wrap:wrap}
   .board-goals{gap:4px}
   .goal-row{padding:6px 8px;gap:6px}
+  #view-monthly .board-header{gap:6px}
+  #view-monthly .board-header .tree-toggle{width:16px;flex-basis:16px}
+  #view-monthly .board-header .module-sort-grip{width:9px;margin-left:-3px;margin-right:-2px}
+  #view-monthly .board-header .board-icon{width:26px;height:26px}
+  #view-monthly .board-header .board-icon svg{width:15px;height:15px}
+  #view-monthly .goal-row{gap:4px;padding:6px 5px}
+  #view-monthly .goal-row .tree-toggle{width:15px;flex-basis:15px}
+  #view-monthly .goal-row .sort-grip{width:9px;margin-left:-3px;margin-right:-2px}
+  #view-monthly .goal-row .tree-add-child{width:18px;height:18px}
+  #view-monthly .goal-row .goal-del{width:16px;height:16px}
+  #view-monthly .goal-progress{gap:1px}
   .strat-item{padding:8px 12px}
 }
 
@@ -473,6 +498,7 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .today-stats{grid-template-columns:1fr}
 .case-add-form{grid-template-columns:1fr 1fr;gap:6px}
 .week-grid{grid-template-columns:1fr}
+  #view-strategy .strategy-grid{grid-template-columns:1fr}
 .section-title{font-size:17px}
 #tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;height:calc(var(--tabbar-h) + env(safe-area-inset-bottom));background:var(--bg-1);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);z-index:100}
 .tabbar-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-3);font-size:10px;transition:var(--t);padding-top:6px}
@@ -592,6 +618,8 @@ const KEYS={
   init:PREFIX+'init',
   pin:PREFIX+'pin'
 };
+const COLLAPSE_KEY=PREFIX+'collapse_preferences';
+const MAX_DEPTH=64,MAX_NODES=10000;
 const TASK_TYPES={
   work:{label:'工作',color:'#6b7c72',bg:'rgba(107,124,114,.1)',border:'#6b7c72'},
   study:{label:'学习',color:'#2d9d6f',bg:'rgba(45,157,111,.1)',border:'#2d9d6f'},
@@ -638,6 +666,27 @@ const NAV_ITEMS=[
 
 /* ========== Utility ========== */
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function readCollapsePreferences(){try{const value=JSON.parse(localStorage.getItem(COLLAPSE_KEY)||'{}');return isPlainObject(value)?value:{}}catch(e){return {}}}
+let collapsePreferences=readCollapsePreferences();
+function collapseKey(scope,id){return scope+':'+id}
+function isCollapsed(scope,id){return !!collapsePreferences[collapseKey(scope,id)]}
+function toggleCollapsed(scope,id){const key=collapseKey(scope,id);if(collapsePreferences[key])delete collapsePreferences[key];else collapsePreferences[key]=true;try{localStorage.setItem(COLLAPSE_KEY,JSON.stringify(collapsePreferences))}catch(e){showToast('折叠偏好保存失败','warning')}return !!collapsePreferences[key]}
+function collapseRegionId(scope,id){return 'collapse-'+String(scope).replace(/[^a-z0-9_-]/gi,'-')+'-'+String(id).replace(/[^a-z0-9_-]/gi,'-')}
+function collapseButton(scope,id,label,hasContent){const collapsed=isCollapsed(scope,id),region=collapseRegionId(scope,id);return '<button type="button" class="tree-toggle collapse-control '+(!hasContent?'empty':(collapsed?'collapsed':''))+'" data-scope="'+scope+'" data-id="'+id+'" aria-label="'+label+'" aria-expanded="'+(!collapsed)+'" aria-controls="'+region+'">'+ICONS.chevronRight+'</button>'}
+function collapseRegion(scope,id,content){return '<div id="'+collapseRegionId(scope,id)+'" class="collapse-region"'+(isCollapsed(scope,id)?' hidden':'')+'>'+content+'</div>'}
+function collapseRegionStart(scope,id){return '<div id="'+collapseRegionId(scope,id)+'" class="collapse-region"'+(isCollapsed(scope,id)?' hidden':'')+'>'}
+function collapseRegionEnd(){return '</div>'}
+function bindCollapseControls(root,render){root.querySelectorAll('.collapse-control:not(.empty)').forEach(el=>el.addEventListener('click',()=>{toggleCollapsed(el.dataset.scope,el.dataset.id);render();}));}
+function applyViewCollapse(viewId,label){const view=document.getElementById(viewId);if(!view||view.dataset.viewCollapsed==='1')return;const children=[...view.children];if(!children.length)return;const body=document.createElement('div'),scope='view',id=viewId.replace('view-','');body.id=collapseRegionId(scope,id);body.className='collapse-region view-collapse-body';while(view.firstChild)body.appendChild(view.firstChild);const control=document.createElement('button');control.type='button';control.className='tree-toggle collapse-control';control.dataset.scope=scope;control.dataset.id=id;control.setAttribute('aria-label',label);control.setAttribute('aria-controls',body.id);control.setAttribute('aria-expanded',String(!isCollapsed(scope,id)));control.innerHTML=ICONS.chevronRight;control.classList.toggle('collapsed',isCollapsed(scope,id));body.hidden=isCollapsed(scope,id);control.addEventListener('click',()=>{toggleCollapsed(scope,id);body.hidden=isCollapsed(scope,id);control.classList.toggle('collapsed',body.hidden);control.setAttribute('aria-expanded',String(!body.hidden));});view.append(control,body);view.dataset.viewCollapsed='1';}
+function treeWalk(nodes,visit){const stack=[];const roots=Array.isArray(nodes)?nodes:[];for(let i=roots.length-1;i>=0;i--)stack.push({node:roots[i],list:roots,index:i,parent:null,depth:1});let count=0;while(stack.length){const entry=stack.pop();count++;if(count>MAX_NODES)throw new Error('任务树节点超过上限');if(entry.depth>MAX_DEPTH)throw new Error('任务树层级超过上限');visit(entry.node,entry.list,entry.index,entry.parent,entry.depth);const children=Array.isArray(entry.node.children)?entry.node.children:[];for(let i=children.length-1;i>=0;i--)stack.push({node:children[i],list:children,index:i,parent:entry.node,depth:entry.depth+1});}}
+function treeFind(nodes,id){let found=null;treeWalk(nodes,(node,list,index,parent,depth)=>{if(!found&&node.id===id)found={node,list,index,parent,depth}});return found}
+function treeCount(nodes){let total=0;treeWalk(nodes,()=>{total++;});return total}
+function treeHasDescendants(node){return !!(node&&Array.isArray(node.children)&&node.children.length)}
+function treeRemove(nodes,id){const found=treeFind(nodes,id);if(!found)return null;return found.list.splice(found.index,1)[0]}
+function reorderSiblingTree(nodes,sourceId,targetId,after){const source=treeFind(nodes,sourceId),target=treeFind(nodes,targetId);if(!source||!target||source.list!==target.list||sourceId===targetId)return false;const list=source.list;const [moved]=list.splice(source.index,1);let targetIndex=list.findIndex(item=>item.id===targetId);if(after)targetIndex++;list.splice(targetIndex,0,moved);return true}
+function reorderList(list,sourceId,targetId,after){const source=list.findIndex(item=>item.id===sourceId),target=list.findIndex(item=>item.id===targetId);if(source<0||target<0||source===target)return false;const [moved]=list.splice(source,1);let index=list.findIndex(item=>item.id===targetId);if(after)index++;list.splice(index,0,moved);return true}
+function moveSiblingToIndex(list,sourceId,index){const source=list.findIndex(item=>item.id===sourceId);if(source<0)return false;const [moved]=list.splice(source,1);list.splice(Math.max(0,Math.min(index,list.length)),0,moved);return true}
+function normalizeTreeNodes(nodes,normalizeNode){const roots=Array.isArray(nodes)?nodes:[];const out=[];const seen=new Set();const stack=[];for(let i=roots.length-1;i>=0;i--)stack.push({raw:roots[i],target:out,index:i,depth:1});let count=0;while(stack.length){const entry=stack.pop();if(!isPlainObject(entry.raw))continue;count++;if(count>MAX_NODES)throw new Error('任务树节点超过上限');if(entry.depth>MAX_DEPTH)throw new Error('任务树层级超过上限');const next=normalizeNode(Object.assign({},entry.raw),entry.index,entry.depth);if(seen.has(next.id))throw new Error('任务树存在重复 ID');seen.add(next.id);next.children=[];entry.target.push(next);const children=Array.isArray(entry.raw.children)?entry.raw.children:[];for(let i=children.length-1;i>=0;i--)stack.push({raw:children[i],target:next.children,index:i,depth:entry.depth+1});}return out;}
 function fmtDate(d){const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const dd=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+dd}
 function parseLocalDate(value){if(value instanceof Date)return new Date(value.getFullYear(),value.getMonth(),value.getDate());const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value||''));return match?new Date(Number(match[1]),Number(match[2])-1,Number(match[3])):new Date(NaN)}
 function localDayNumber(d){return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000}
@@ -845,25 +894,133 @@ function saveSyncConfig(){
 /* ========== Store ========== */
 const DATA_KEYS=['monthly','weekly','cases','strategy','inspirations','settings'];
 function isPlainObject(value){return !!value&&typeof value==='object'&&!Array.isArray(value)}
+function normalizedId(value,fallback){return typeof value==='string'&&value.trim()?value.trim():fallback}
+function normalizeMonthly(value){
+  const monthly=isPlainObject(value)?Object.assign({},value):{};
+  monthly.boards=(Array.isArray(monthly.boards)?monthly.boards:[]).filter(isPlainObject).map((board,index)=>{
+    const next=Object.assign({},board);
+    next.id=normalizedId(next.id,'board-'+index);
+    next.name=typeof next.name==='string'?next.name:'新板块';
+    next.icon=typeof next.icon==='string'?next.icon:'briefcase';
+    next.color=typeof next.color==='string'?next.color:'#6b7c72';
+    next.mindset=typeof next.mindset==='string'?next.mindset:'';
+    next.method=typeof next.method==='string'?next.method:'';
+    next.goals=normalizeTreeNodes(next.goals,(goal,goalIndex)=>{
+      const item=Object.assign({},goal,{id:normalizedId(goal.id,next.id+'-goal-'+goalIndex),text:typeof goal.text==='string'?goal.text:''});
+      item.type=item.type==='count'?'count':'bool';
+      if(item.type==='count'){item.target=Math.max(1,Number(item.target)||1);item.current=Math.max(0,Number(item.current)||0);item.unit=typeof item.unit==='string'?item.unit:'';}
+      else item.done=!!item.done;
+      return item;
+    });
+    return next;
+  });
+  return monthly;
+}
+function normalizeCases(value){
+  const cases=isPlainObject(value)?Object.assign({},value):{};
+  const defaultCategories=[{id:'court',name:'开庭日程',icon:'cases'},{id:'preservation',name:'保全到期',icon:'clock'}];
+  const categoryById=new Map();
+  const hasConfiguredCategories=Array.isArray(cases.categories);
+  (hasConfiguredCategories?cases.categories:[]).filter(isPlainObject).forEach((category,index)=>{
+    const id=normalizedId(category.id,'category-'+index);
+    if(!categoryById.has(id))categoryById.set(id,Object.assign({},category,{id,name:typeof category.name==='string'&&category.name.trim()?category.name.trim():'未命名分类'}));
+  });
+  if(!hasConfiguredCategories)defaultCategories.forEach(category=>{if(!categoryById.has(category.id))categoryById.set(category.id,Object.assign({},category));});
+  cases.cases=normalizeTreeNodes(cases.cases,(item,index)=>{
+    const next=Object.assign({},item,{id:normalizedId(item.id,'case-'+index),name:typeof item.name==='string'?item.name:'',date:typeof item.date==='string'?item.date:'',note:typeof item.note==='string'?item.note:'',time:typeof item.time==='string'?item.time:'',done:!!item.done});
+    next.category=normalizedId(item.category,'court');
+    if(!categoryById.has(next.category))categoryById.set(next.category,{id:next.category,name:next.category,icon:'cases'});
+    return next;
+  });
+  cases.categories=Array.from(categoryById.values());
+  return cases;
+}
+function strategyKind(value){return ['goal','action','topic','custom'].includes(value)?value:'custom'}
+function normalizeStrategy(value){
+  const strategy=isPlainObject(value)?Object.assign({},value):{};
+  const legacy=[
+    {id:'goals',name:'未来3个月战略目标',kind:'goal',children:Array.isArray(strategy.goals)?strategy.goals:[]},
+    {id:'fixed-actions',name:'每周固定动作',kind:'action',children:Array.isArray(strategy.fixedActions)?strategy.fixedActions:[]},
+    {id:'topics',name:'选题储备',kind:'topic',children:Array.isArray(strategy.topics)?strategy.topics:[]}
+  ];
+  const hasConfiguredBlocks=Array.isArray(strategy.blocks);
+  const source=hasConfiguredBlocks?strategy.blocks:legacy;
+  const seen=new Set();
+  strategy.blocks=source.filter(isPlainObject).map((block,index)=>{
+    const known=legacy.find(item=>item.id===block.id);
+    const id=normalizedId(block.id,'block-'+index);
+    if(seen.has(id))return null;
+    seen.add(id);
+    const kind=strategyKind(block.kind||(known&&known.kind));
+    const next=Object.assign({},block,{id,name:typeof block.name==='string'&&block.name.trim()?block.name.trim():(known?known.name:'未命名区块'),kind});
+    next.children=normalizeTreeNodes(Array.isArray(block.children)?block.children:(known?known.children:[]),(child,childIndex)=>{
+      const item=Object.assign({},child,{id:normalizedId(child.id,id+'-child-'+childIndex),text:typeof child.text==='string'?child.text:''});
+      item.important=!!item.important;
+      if(kind==='topic')item.status=['idea','writing','published'].includes(item.status)?item.status:'idea';else item.done=!!item.done;
+      return item;
+    });
+    return next;
+  }).filter(Boolean);
+  if(!hasConfiguredBlocks){
+    legacy.forEach(template=>{if(!strategy.blocks.some(block=>block.id===template.id))strategy.blocks.push({id:template.id,name:template.name,kind:template.kind,children:template.children});});
+  }
+  strategy.goals=(strategy.blocks.find(block=>block.id==='goals')||{children:[]}).children;
+  strategy.fixedActions=(strategy.blocks.find(block=>block.id==='fixed-actions')||{children:[]}).children;
+  strategy.topics=(strategy.blocks.find(block=>block.id==='topics')||{children:[]}).children;
+  return strategy;
+}
+function normalizeData(data){
+  const source=isPlainObject(data)?data:{};
+  return {
+    monthly:normalizeMonthly(source.monthly),
+    weekly:(Array.isArray(source.weekly)?source.weekly:[]).filter(isPlainObject).map((week,index)=>Object.assign({},week,{weekKey:normalizeWeekKey(week.weekKey,week.weekStart),weekStart:typeof week.weekStart==='string'?week.weekStart:'',tasks:normalizeTreeNodes(week.tasks,(task,taskIndex)=>Object.assign({},task,{id:normalizedId(task.id,'week-'+index+'-task-'+taskIndex),day:Math.min(7,Math.max(1,Number(task.day)||1)),text:typeof task.text==='string'?task.text:'',type:typeof task.type==='string'?task.type:'work',done:!!task.done,important:!!task.important,time:typeof task.time==='string'?task.time:''}))})),
+    cases:normalizeCases(source.cases),
+    strategy:normalizeStrategy(source.strategy),
+    inspirations:Array.isArray(source.inspirations)?source.inspirations:[],
+    settings:isPlainObject(source.settings)?Object.assign({},source.settings):{lastBackupReminder:0,lastExport:0}
+  };
+}
 function isValidLocalDateString(value){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(String(value||'')))return false;
   const date=parseLocalDate(value);
   return !Number.isNaN(date.getTime())&&fmtDate(date)===value;
 }
+function validateTree(nodes,seen,validateNode){
+  if(!Array.isArray(nodes))return false;
+  try{
+    treeWalk(nodes,node=>{
+      if(!isPlainObject(node)||typeof node.id!=='string'||!node.id||seen.has(node.id)||!validateNode(node))throw new Error('invalid tree node');
+      seen.add(node.id);
+    });
+    return true;
+  }catch(e){return false;}
+}
+function uniqueContainerIds(items){const seen=new Set();return Array.isArray(items)&&items.every(item=>isPlainObject(item)&&typeof item.id==='string'&&item.id&&!seen.has(item.id)&&(seen.add(item.id),true));}
+function validateRawData(data){
+  const uniqueRaw=items=>{if(!Array.isArray(items))return true;const seen=new Set();return items.every(item=>!isPlainObject(item)||typeof item.id!=='string'||!item.id||(!seen.has(item.id)&&(seen.add(item.id),true)));};
+  if(data.monthly&&Array.isArray(data.monthly.boards)&&!uniqueRaw(data.monthly.boards))return false;
+  if(data.cases&&Array.isArray(data.cases.categories)&&!uniqueRaw(data.cases.categories))return false;
+  if(data.strategy&&Array.isArray(data.strategy.blocks)&&!uniqueRaw(data.strategy.blocks))return false;
+  if(Array.isArray(data.weekly))for(const week of data.weekly){if(!isPlainObject(week)||!Array.isArray(week.tasks))continue;try{treeWalk(week.tasks,task=>{if(Object.prototype.hasOwnProperty.call(task,'day')&&(!Number.isInteger(Number(task.day))||Number(task.day)<1||Number(task.day)>7))throw new Error('invalid day');});}catch(e){return false;}}
+  return true;
+}
 function validateModule(name,value){
-  if(name==='monthly')return isPlainObject(value)&&Array.isArray(value.boards);
-  if(name==='weekly')return Array.isArray(value)&&value.every(week=>isPlainObject(week)&&isValidLocalDateString(week.weekStart)&&Array.isArray(week.tasks)&&week.tasks.every(task=>isPlainObject(task)&&Number.isInteger(Number(task.day))&&Number(task.day)>=1&&Number(task.day)<=7));
-  if(name==='cases')return isPlainObject(value)&&Array.isArray(value.cases)&&value.cases.every(item=>isPlainObject(item)&&isValidLocalDateString(item.date));
-  if(name==='strategy')return isPlainObject(value)&&Array.isArray(value.goals)&&Array.isArray(value.fixedActions)&&Array.isArray(value.topics);
+  if(name==='monthly'){if(!isPlainObject(value)||!uniqueContainerIds(value.boards))return false;const seen=new Set();return value.boards.every(board=>validateTree(board.goals,seen,()=>true));}
+  if(name==='weekly'){if(!Array.isArray(value))return false;const weekKeys=new Set(),seen=new Set();return value.every(week=>{const key=normalizeWeekKey(week.weekKey,week.weekStart);return isPlainObject(week)&&isValidLocalDateString(week.weekStart)&&key&&!weekKeys.has(key)&&(weekKeys.add(key),true)&&validateTree(week.tasks,seen,task=>Number.isInteger(Number(task.day))&&Number(task.day)>=1&&Number(task.day)<=7);});}
+  if(name==='cases'){if(!isPlainObject(value)||!uniqueContainerIds(value.categories))return false;return validateTree(value.cases,new Set(),item=>isValidLocalDateString(item.date));}
+  if(name==='strategy'){if(!isPlainObject(value)||!Array.isArray(value.goals)||!Array.isArray(value.fixedActions)||!Array.isArray(value.topics)||!uniqueContainerIds(value.blocks))return false;const seen=new Set();return value.blocks.every(block=>validateTree(block.children,seen,()=>true));}
   if(name==='inspirations')return Array.isArray(value)&&value.every(i=>isPlainObject(i));
   if(name==='settings')return isPlainObject(value);
   return false;
 }
 function validateData(data){
-  if(!isPlainObject(data)||!validateModule('monthly',data.monthly)||!validateModule('weekly',data.weekly)||!validateModule('cases',data.cases)||!validateModule('strategy',data.strategy))throw new Error('备份缺少完整且有效的计划数据');
-  if(data.settings!==undefined&&!validateModule('settings',data.settings))throw new Error('设置数据格式不正确');
-  if(data.inspirations!==undefined&&!validateModule('inspirations',data.inspirations))throw new Error('灵感池数据格式不正确');
-  return true;
+  if(!isPlainObject(data)||!isPlainObject(data.monthly)||!Array.isArray(data.weekly)||!isPlainObject(data.cases)||!isPlainObject(data.strategy))throw new Error('备份缺少完整且有效的计划数据');
+  if(!validateRawData(data))throw new Error('备份包含重复模块或非法下级任务');
+  const normalized=normalizeData(data);
+  if(!validateModule('monthly',normalized.monthly)||!validateModule('weekly',normalized.weekly)||!validateModule('cases',normalized.cases)||!validateModule('strategy',normalized.strategy))throw new Error('备份缺少完整且有效的计划数据');
+  if(data.settings!==undefined&&!validateModule('settings',normalized.settings))throw new Error('设置数据格式不正确');
+  if(data.inspirations!==undefined&&!validateModule('inspirations',normalized.inspirations))throw new Error('灵感池数据格式不正确');
+  return normalized;
 }
 function cloneData(data){return JSON.parse(JSON.stringify(data))}
 const Store={
@@ -887,7 +1044,7 @@ const Store={
     backup.snapshots=backup.snapshots.slice(-MAX_BACKUP_SNAPSHOTS);
     localStorage.setItem(KEYS.backup,JSON.stringify(backup));
   },
-  currentData(){return{monthly:this.get(KEYS.monthly,{boards:[]}),weekly:this.get(KEYS.weekly,[]),cases:this.get(KEYS.cases,{cases:[]}),strategy:this.get(KEYS.strategy,{goals:[],fixedActions:[],topics:[]}),inspirations:this.get(KEYS.inspirations,[]),settings:this.get(KEYS.settings,{lastBackupReminder:0,lastExport:0})}},
+  currentData(){return normalizeData({monthly:this.get(KEYS.monthly,{boards:[]}),weekly:this.get(KEYS.weekly,[]),cases:this.get(KEYS.cases,{cases:[]}),strategy:this.get(KEYS.strategy,{goals:[],fixedActions:[],topics:[]}),inspirations:this.get(KEYS.inspirations,[]),settings:this.get(KEYS.settings,{lastBackupReminder:0,lastExport:0})})},
   set(key,val){
     try{
       const str=JSON.stringify(val);
@@ -921,9 +1078,7 @@ const Store={
     return snapshots.find(s=>{try{validateData(s.data);return keys.every(key=>Object.prototype.hasOwnProperty.call(s.data,key.replace(PREFIX,'')))}catch(e){return false}})||null;
   },
   commitImport(data){
-    validateData(data);
-    const candidate=cloneData(data);
-    candidate.settings=isPlainObject(candidate.settings)?candidate.settings:{lastBackupReminder:0,lastExport:0};
+    const candidate=cloneData(validateData(data));
     const previous={};const writes=[];const previousInit=localStorage.getItem(KEYS.init);
     DATA_KEYS.forEach(name=>{const key=KEYS[name];previous[key]=localStorage.getItem(key);writes.push([key,JSON.stringify(candidate[name])])});
     try{writes.forEach(([key,value])=>localStorage.setItem(key,value));localStorage.setItem(KEYS.init,'1');this.saveSnapshot(candidate);return true}
@@ -1028,13 +1183,12 @@ const CloudSync={
     const salt=payload.salt;
     if(salt&&salt!==this.meta.salt){this.meta.salt=salt;this.saveMeta();this.cryptoKey=await deriveSyncKey(localStorage.getItem(SYNC_KEY_SECRET),this.meta.salt)}
     const plaintext=await syncDecrypt(this.cryptoKey,payload.iv,payload.ct);
-    const data=JSON.parse(plaintext);
-    validateData(data);
+    const data=validateData(JSON.parse(plaintext));
     this.applyRemote(data);
   },
   applyRemote(data){
     this.applyingRemote=true;
-    try{Store.set(KEYS.monthly,data.monthly);Store.set(KEYS.weekly,data.weekly);Store.set(KEYS.cases,data.cases);Store.set(KEYS.strategy,data.strategy);if(data.inspirations)Store.set(KEYS.inspirations,data.inspirations);if(data.settings)Store.set(KEYS.settings,data.settings)}
+    try{Store.commitImport(normalizeData(data));}
     finally{this.applyingRemote=false}
     loadState();renderAll();
   },
@@ -1077,17 +1231,44 @@ const CloudSync={
 };
 function applySyncUrlParams(){try{const p=new URLSearchParams(location.search);const o=p.get('sync_owner'),r=p.get('sync_repo'),t=p.get('sync_token'),m=p.get('sync_room');if(o||r||t||m){CloudSync.loadConfig();if(o)CloudSync.config.owner=o;if(r)CloudSync.config.repo=r;if(t&&t.length>=20)CloudSync.config.token=t;if(m)CloudSync.config.roomId=m.toUpperCase();CloudSync.saveConfig();history.replaceState(null,'',location.pathname)}}catch(e){}}
 
+/* ========== Pointer + keyboard sorting (whole tree shell owns pointer until release/cancel) ========== */
+function bindSortController(root,onCommit){
+  if(!root)return;
+  let active=null;
+  const cancel=()=>{if(!active)return;const {item,placeholder,ghost}=active;if(placeholder.parentNode)placeholder.replaceWith(item);item.classList.remove('sorting');ghost.remove();active=null;};
+  const candidates=()=>active?[...active.parent.children].filter(el=>el.classList&&el.classList.contains('sort-item')&&el!==active.item):[];
+  const place=(clientY)=>{if(!active)return;const list=candidates();let before=null;for(const candidate of list){const rect=candidate.getBoundingClientRect();if(clientY<rect.top+rect.height/2){before=candidate;break;}}if(before)active.parent.insertBefore(active.placeholder,before);else active.parent.appendChild(active.placeholder);};
+  const moveGhost=(x,y)=>{if(active){active.ghost.style.left=(x+14)+'px';active.ghost.style.top=(y+14)+'px';place(y);}};
+  const finish=()=>{if(!active)return;const {item,placeholder,ghost,parent}=active;const index=[...parent.children].filter(el=>el!==item).indexOf(placeholder);placeholder.replaceWith(item);item.classList.remove('sorting');ghost.remove();const move={source:item.dataset.sortId,parent:item.dataset.sortParent,index};active=null;window.__lastSortCommit=move;onCommit(move);};
+  const onKeydown=event=>{if(event.key==='Escape')cancel();};window.addEventListener('keydown',onKeydown,true);window.addEventListener('blur',cancel);window.addEventListener('pagehide',cancel);
+  root.addEventListener('pointerup',event=>{if(active&&active.pointerId===event.pointerId)finish();},true);
+  window.addEventListener('pointerup',event=>{if(active)finish();},true);
+  root.addEventListener('pointercancel',event=>{if(active&&active.pointerId===event.pointerId)cancel();});
+  root.querySelectorAll('.sort-grip').forEach(grip=>{
+    grip.addEventListener('pointerdown',event=>{if(event.button!==0||active)return;const item=grip.closest('.sort-item'),parent=item&&item.parentElement;if(!item||!parent)return;const rect=item.getBoundingClientRect(),placeholder=document.createElement('div'),ghost=item.cloneNode(true);placeholder.className='sort-placeholder';placeholder.dataset.sortPlaceholder='true';placeholder.style.height=rect.height+'px';ghost.classList.add('sort-ghost');ghost.style.width=rect.width+'px';ghost.style.left=(event.clientX+14)+'px';ghost.style.top=(event.clientY+14)+'px';document.body.appendChild(ghost);parent.insertBefore(placeholder,item);item.classList.add('sorting');active={item,parent,placeholder,ghost,pointerId:event.pointerId};grip.setPointerCapture(event.pointerId);event.preventDefault();});
+    grip.addEventListener('pointermove',event=>{if(active&&active.pointerId===event.pointerId){moveGhost(event.clientX,event.clientY);event.preventDefault();}});
+    grip.addEventListener('pointerup',event=>{if(active&&active.pointerId===event.pointerId)finish();});
+    grip.addEventListener('pointercancel',event=>{if(active&&active.pointerId===event.pointerId)cancel();});
+    grip.addEventListener('lostpointercapture',event=>{if(active&&event.pointerId===active.pointerId)finish();});
+    grip.addEventListener('keydown',event=>{if(!(event.altKey&&(event.key==='ArrowUp'||event.key==='ArrowDown')))return;const item=grip.closest('.sort-item'),siblings=[...item.parentElement.children].filter(el=>el.classList&&el.classList.contains('sort-item')),index=siblings.indexOf(item),next=index+(event.key==='ArrowUp'?-1:1);if(next<0||next>=siblings.length)return;event.preventDefault();const source=item.dataset.sortId,parent=item.dataset.sortParent;onCommit({source,parent,index:next});setTimeout(()=>{const moved=[...root.querySelectorAll('.sort-item')].find(el=>el.dataset.sortId===source&&el.dataset.sortParent===parent);moved&&moved.querySelector('.sort-grip')?.focus();},0);});
+  });
+}
+
 /* ========== State ========== */
 let state={currentTab:'today',weekOffset:0,monthly:{},weekly:[],cases:{},strategy:{},inspirations:[],settings:{}};
 
 function loadState(){
-  state.monthly=Store.get(KEYS.monthly,{boards:[]});
-  state.weekly=Store.get(KEYS.weekly,[]);
+  const raw=Store.currentData();
+  const data=normalizeData(raw);
+  // Persist migration in-place without creating an extra snapshot or cloud write loop.
+  DATA_KEYS.forEach(name=>{if(JSON.stringify(raw[name])!==JSON.stringify(data[name]))localStorage.setItem(KEYS[name],JSON.stringify(data[name]));});
+  state.monthly=data.monthly;
+  state.weekly=data.weekly;
   state.weekly.forEach(week=>{if(week&&week.weekStart)week.weekKey=normalizeWeekKey(week.weekKey,week.weekStart)});
-  state.cases=Store.get(KEYS.cases,{cases:[]});
-  state.strategy=Store.get(KEYS.strategy,{goals:[],fixedActions:[],topics:[]});
-  state.inspirations=Store.get(KEYS.inspirations,[]);
-  state.settings=Store.get(KEYS.settings,{lastBackupReminder:0,lastExport:0});
+  state.cases=data.cases;
+  state.strategy=data.strategy;
+  state.inspirations=data.inspirations;
+  state.settings=data.settings;
 }
 function saveMonthly(){Store.set(KEYS.monthly,state.monthly)}
 function saveWeekly(){Store.set(KEYS.weekly,state.weekly)}
@@ -1095,6 +1276,9 @@ function saveCases(){Store.set(KEYS.cases,state.cases)}
 function saveStrategy(){Store.set(KEYS.strategy,state.strategy)}
 function saveInspirations(){Store.set(KEYS.inspirations,state.inspirations)}
 function saveSettings(){Store.set(KEYS.settings,state.settings)}
+function getModuleSubtitle(key,fallback){const subtitles=state.settings&&state.settings.moduleSubtitles;return subtitles&&typeof subtitles[key]==='string'&&subtitles[key].trim()?subtitles[key]:fallback;}
+function editableModuleSubtitle(key,fallback){return '<span class="section-sub module-subtitle" contenteditable="true" data-module-subtitle="'+key+'">'+escapeHtml(getModuleSubtitle(key,fallback))+'</span>';}
+function bindModuleSubtitles(root){root.querySelectorAll('.module-subtitle[contenteditable]').forEach(el=>bindInlineText(el,value=>{if(!state.settings.moduleSubtitles)state.settings.moduleSubtitles={};state.settings.moduleSubtitles[el.dataset.moduleSubtitle]=value;saveSettings();}));}
 
 /* ========== Demo Data ========== */
 function generateDemoData(){
@@ -1312,6 +1496,7 @@ function renderQuote(){
 
 /* ========== Today Module ========== */
 function renderToday(){
+  document.getElementById('view-today').dataset.viewCollapsed='';
   const now=new Date();
   const todayDayNum=now.getDay()||7;
   const todayKey=getWeekKey(now);
@@ -1323,7 +1508,7 @@ function renderToday(){
     const weekMonday=getMonday(parseLocalDate(week.weekStart));
     const isCurrentWeek=weekMatches(week,todayKey);
     
-    week.tasks.forEach(task=>{
+    treeWalk(week.tasks,task=>{
       if(task.done)return;
       
       const taskDate=addDays(weekMonday,task.day-1);
@@ -1353,7 +1538,7 @@ function renderToday(){
   
   // Stats
   const currentWeek=state.weekly.find(w=>weekMatches(w,todayKey));
-  const weekTasks=currentWeek?currentWeek.tasks:[];
+  const weekTasks=[];if(currentWeek)treeWalk(currentWeek.tasks,task=>weekTasks.push(task));
   const weekDone=weekTasks.filter(t=>t.done).length;
   const weekTotal=weekTasks.length;
   const weekRate=weekTotal>0?Math.round(weekDone/weekTotal*100):0;
@@ -1361,7 +1546,7 @@ function renderToday(){
   // Monthly progress
   let monthlyDone=0,monthlyTotal=0;
   state.monthly.boards.forEach(b=>{
-    b.goals.forEach(g=>{
+    treeWalk(b.goals,g=>{
       monthlyTotal++;
       if(g.type==='bool'&&g.done)monthlyDone++;
       else if(g.type==='count'&&g.current>=g.target)monthlyDone++;
@@ -1371,7 +1556,7 @@ function renderToday(){
   let html='';
   
   // Section header
-  html+='<div class="section-header"><div><div class="section-title">今日要处理</div><div class="section-sub">逾期 · 灵感池</div></div></div>';
+  html+='<div class="section-header"><div><div class="section-title">今日要处理</div>'+editableModuleSubtitle('today','逾期 · 灵感池')+'</div></div>';
   
   // Stats
   html+='<div class="today-stats">';
@@ -1383,18 +1568,18 @@ function renderToday(){
   // Overdue
   if(overdueItems.length>0){
     html+='<div class="today-banner overdue-banner">';
-    html+='<div class="today-banner-title">'+ICONS.alert+' 逾期未完成 <span class="count">('+overdueItems.length+'项)</span></div>';
-    html+='<div class="today-list">';
+    html+='<div class="today-banner-title">'+collapseButton('today-overdue','items','展开或收起逾期项目',true)+ICONS.alert+' 逾期未完成 <span class="count">('+overdueItems.length+'项)</span></div>';
+    html+=collapseRegion('today-overdue','items','<div class="today-list">');
     overdueItems.forEach(item=>{
       html+=renderTodayItem(item,'overdue');
     });
-    html+='</div></div>';
+    html+='</div></div></div>';
   }
   
   // Inspiration pool (灵感池)
   html+='<div class="today-banner" style="border-color:rgba(82,183,136,.2);background:linear-gradient(135deg,rgba(82,183,136,.05),var(--bg-2))">';
-  html+='<div class="today-banner-title" style="color:var(--accent)">'+ICONS.sparkles+' 灵感池 <span class="count">('+state.inspirations.length+'条)</span></div>';
-  html+='<div style="font-size:12px;color:var(--text-3);margin-bottom:10px">工作中冒出的想法先存这里，不干扰当前计划，空时再评估是否排入周计划</div>';
+  html+='<div class="today-banner-title" style="color:var(--accent)">'+collapseButton('today-inspirations','pool','展开或收起灵感池',true)+ICONS.sparkles+' 灵感池 <span class="count">('+state.inspirations.length+'条)</span></div>';
+  html+=collapseRegionStart('today-inspirations','pool')+'<div style="font-size:12px;color:var(--text-3);margin-bottom:10px">工作中冒出的想法先存这里，不干扰当前计划，空时再评估是否排入周计划</div>';
   if(state.inspirations.length===0){
     html+='<div class="day-empty">暂无灵感，随时记录闪现的想法</div>';
   }else{
@@ -1415,7 +1600,7 @@ function renderToday(){
     '<input type="text" class="insp-add-input" placeholder="记录一个灵感…" onkeydown="if(event.key===\'Enter\')addInspiration()">'+
     '<button class="btn btn-primary btn-sm" onclick="addInspiration()">记下</button>'+
   '</div>';
-  html+='</div>';
+  html+='</div>'+collapseRegionEnd()+'</div>';
 
   document.getElementById('view-today').innerHTML=html;
   
@@ -1445,6 +1630,7 @@ function renderToday(){
     });
     el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}});
   });
+  bindModuleSubtitles(document.getElementById('view-today'));bindCollapseControls(document.getElementById('view-today'),renderToday);applyViewCollapse('view-today','展开或收起今日内容');
 }
 
 function renderTodayItem(item,cls){
@@ -1508,50 +1694,39 @@ function inspirationToWeekly(id){
 
 /* ========== Monthly Module ========== */
 function renderMonthly(){
+  document.getElementById('view-monthly').dataset.viewCollapsed='';
   const boardIcons={briefcase:ICONS.briefcase,book:ICONS.book,mic:ICONS.mic,users:ICONS.users};
+  const renderGoal=(board,g,parentId)=>{
+    const collapseId=board.id+'--'+g.id,hasChildren=treeHasDescendants(g),done=g.type==='count'?g.current>=g.target:g.done;
+    const controls=g.type==='count'?'<div class="goal-progress"><button type="button" class="goal-ctrl" aria-label="减少 '+escapeHtml(g.text)+' 进度" data-board="'+board.id+'" data-goal="'+g.id+'" data-delta="-1">-</button><span class="goal-count" contenteditable="true" data-board="'+board.id+'" data-goal="'+g.id+'" data-field="current">'+g.current+'</span>/<span class="goal-count" contenteditable="true" data-board="'+board.id+'" data-goal="'+g.id+'" data-field="target">'+g.target+g.unit+'</span><button type="button" class="goal-ctrl" aria-label="增加 '+escapeHtml(g.text)+' 进度" data-board="'+board.id+'" data-goal="'+g.id+'" data-delta="1">+</button></div>':'';
+    return '<div class="goal-tree sort-item" data-sort-id="'+g.id+'" data-sort-parent="'+parentId+'" data-board="'+board.id+'" data-goal="'+g.id+'"><div class="goal-row">'+
+      collapseButton('monthly-goal',collapseId,'展开或收起子目标',hasChildren)+'<span class="task-grip sort-grip" tabindex="0" role="button" aria-label="拖动排序；Alt 加方向键排序">'+ICONS.grip+'</span>'+
+      '<button type="button" class="goal-check '+(done?'checked':'')+'" aria-label="切换目标 '+escapeHtml(g.text)+' 完成状态" aria-pressed="'+done+'" data-board="'+board.id+'" data-goal="'+g.id+'">'+ICONS.check+'</button><span class="goal-text '+(done?'done':'')+'" contenteditable="true" data-board="'+board.id+'" data-goal="'+g.id+'">'+escapeHtml(g.text)+'</span>'+controls+
+      '<button type="button" class="tree-add-child" aria-label="添加下级目标" data-board="'+board.id+'" data-parent="'+g.id+'">'+ICONS.plus+'</button><button type="button" class="goal-del" aria-label="删除目标" data-board="'+board.id+'" data-goal="'+g.id+'">'+ICONS.trash+'</button></div>'+
+      collapseRegion('monthly-goal',collapseId,'<div class="tree-children">'+g.children.map(child=>renderGoal(board,child,g.id)).join('')+'</div>')+'</div>';
+  };
   
   const html=state.monthly.boards.map(board=>{
-    const goalsHtml=board.goals.map(g=>{
-      if(g.type==='count'){
-        const pct=g.target>0?Math.min(100,Math.round(g.current/g.target*100)):0;
-        const done=g.current>=g.target;
-        return '<div class="goal-row" draggable="true" data-board="'+board.id+'" data-goal="'+g.id+'">'+
-          '<span class="task-grip" aria-hidden="true">'+ICONS.grip+'</span>'+
-          '<button type="button" class="goal-check '+(done?'checked':'')+'" aria-label="切换目标 '+escapeHtml(g.text)+' 完成状态" aria-pressed="'+done+'" data-board="'+board.id+'" data-goal="'+g.id+'">'+ICONS.check+'</button>'+
-          '<span class="goal-text '+((done)?'done':'')+'" contenteditable="true" data-board="'+board.id+'" data-goal="'+g.id+'">'+escapeHtml(g.text)+'</span>'+
-          '<div class="goal-progress">'+
-            '<button type="button" class="goal-ctrl" aria-label="减少 '+escapeHtml(g.text)+' 进度" data-board="'+board.id+'" data-goal="'+g.id+'" data-delta="-1">-</button>'+
-            '<span class="goal-count" contenteditable="true" data-board="'+board.id+'" data-goal="'+g.id+'" data-field="current">'+g.current+'</span>/<span class="goal-count" contenteditable="true" data-board="'+board.id+'" data-goal="'+g.id+'" data-field="target">'+g.target+g.unit+'</span>'+
-            '<button type="button" class="goal-ctrl" aria-label="增加 '+escapeHtml(g.text)+' 进度" data-board="'+board.id+'" data-goal="'+g.id+'" data-delta="1">+</button>'+
-            '<div class="goal-bar"><div class="goal-bar-fill" style="width:'+pct+'%"></div></div>'+
-          '</div>'+
-          '<button type="button" class="goal-del" aria-label="删除目标" data-board="'+board.id+'" data-goal="'+g.id+'">'+ICONS.trash+'</button>'+
-        '</div>';
-      }else{
-        return '<div class="goal-row" draggable="true" data-board="'+board.id+'" data-goal="'+g.id+'">'+
-          '<span class="task-grip" aria-hidden="true">'+ICONS.grip+'</span>'+
-          '<button type="button" class="goal-check '+(g.done?'checked':'')+'" aria-label="切换目标 '+escapeHtml(g.text)+' 完成状态" aria-pressed="'+g.done+'" data-board="'+board.id+'" data-goal="'+g.id+'">'+ICONS.check+'</button>'+
-          '<span class="goal-text '+(g.done?'done':'')+'" contenteditable="true" data-board="'+board.id+'" data-goal="'+g.id+'">'+escapeHtml(g.text)+'</span>'+
-          '<button type="button" class="goal-del" aria-label="删除目标" data-board="'+board.id+'" data-goal="'+g.id+'">'+ICONS.trash+'</button>'+
-        '</div>';
-      }
-    }).join('');
+    const boardCollapsed=isCollapsed('monthly-board',board.id),boardHasContent=treeCount(board.goals)>0;
+    const goalsHtml=board.goals.map(g=>renderGoal(board,g,'root-'+board.id)).join('');
     
-    return '<div class="board-card" style="--board-color:'+board.color+'">'+
-      '<div class="board-header">'+
+    return '<div class="board-card module-card sort-item" data-sort-id="'+board.id+'" data-sort-parent="monthly-boards" style="--board-color:'+board.color+'">'+
+      '<div class="board-header">'+collapseButton('monthly-board',board.id,'展开或收起板块',boardHasContent)+
+        '<span class="task-grip sort-grip module-sort-grip" tabindex="0" role="button" aria-label="拖动板块排序；Alt 加方向键排序">'+ICONS.grip+'</span>'+
         '<div class="board-icon" style="color:'+board.color+'">'+(boardIcons[board.icon]||ICONS.briefcase)+'</div>'+
         '<div class="board-name" contenteditable="true" data-board="'+board.id+'">'+escapeHtml(board.name)+'</div>'+
+        '<button type="button" class="board-delete" aria-label="删除板块 '+escapeHtml(board.name)+'" data-board="'+board.id+'">'+ICONS.trash+'</button>'+
       '</div>'+
-      '<div class="board-mindset" contenteditable="true" data-board="'+board.id+'">'+escapeHtml(board.mindset)+'</div>'+
+      collapseRegion('monthly-board',board.id,'<div class="board-mindset" contenteditable="true" data-board="'+board.id+'">'+escapeHtml(board.mindset)+'</div>'+
       '<div class="board-goals">'+goalsHtml+'</div>'+
       '<div class="goal-add"><input type="text" class="goal-add-input" placeholder="添加目标…" data-board="'+board.id+'" onkeydown="if(event.key===\'Enter\')addGoal(\''+board.id+'\')"><button type="button" class="goal-add-btn" data-board="'+board.id+'" aria-label="添加目标">'+ICONS.plus+'</button></div>'+
-      '<div class="board-method" contenteditable="true" data-board="'+board.id+'"><strong>投入方式：</strong>'+escapeHtml(board.method)+'</div>'+
+      '<div class="board-method" contenteditable="true" data-board="'+board.id+'"><strong>投入方式：</strong>'+escapeHtml(board.method)+'</div>')+
     '</div>';
   }).join('');
   
   const now=new Date();
   document.getElementById('view-monthly').innerHTML=
-    '<div class="section-header"><div><div class="section-title">月度计划总表</div><div class="section-sub">'+now.getFullYear()+'年'+(now.getMonth()+1)+'月 · 四大核心板块</div></div></div>'+
+    '<div class="section-header"><div><div class="section-title">月度计划总表</div><div class="section-sub">'+now.getFullYear()+'年'+(now.getMonth()+1)+'月 · '+state.monthly.boards.length+' 个'+editableModuleSubtitle('monthly','核心板块')+'</div></div><button type="button" class="btn btn-ghost btn-sm" onclick="addBoard()">新增板块</button></div>'+
     '<div class="monthly-grid">'+html+'</div>';
   
   // Bind events
@@ -1609,13 +1784,9 @@ function renderMonthly(){
     });
     el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}});
   });
-  // Drag & drop monthly goals
-  document.querySelectorAll('#view-monthly .goal-row[draggable]').forEach(el=>{
-    el.addEventListener('dragstart',handleGoalDragStart);
-    el.addEventListener('dragend',handleGoalDragEnd);
-    el.addEventListener('dragover',handleGoalDragOver);
-    el.addEventListener('drop',handleGoalDrop);
-  });
+  bindModuleSubtitles(document.getElementById('view-monthly'));bindCollapseControls(document.getElementById('view-monthly'),renderMonthly);
+  document.querySelectorAll('#view-monthly .tree-add-child').forEach(el=>el.addEventListener('click',()=>addGoalChild(el.dataset.board,el.dataset.parent)));
+  bindSortController(document.getElementById('view-monthly'),move=>{if(move.parent==='monthly-boards'){if(moveSiblingToIndex(state.monthly.boards,move.source,move.index)){saveMonthly();renderMonthly();}return;}const source=document.querySelector('#view-monthly .sort-item[data-sort-id="'+move.source+'"][data-board]'),board=source&&state.monthly.boards.find(item=>item.id===source.dataset.board),found=board&&treeFind(board.goals,move.source);if(found&&moveSiblingToIndex(found.list,move.source,move.index)){saveMonthly();renderMonthly();renderToday();}});
   // Goal add buttons
   document.querySelectorAll('#view-monthly .goal-add-btn').forEach(el=>{
     el.addEventListener('click',()=>addGoal(el.dataset.board));
@@ -1624,6 +1795,22 @@ function renderMonthly(){
   document.querySelectorAll('#view-monthly .goal-del').forEach(el=>{
     el.addEventListener('click',()=>deleteGoal(el.dataset.board,el.dataset.goal));
   });
+  document.querySelectorAll('#view-monthly .board-delete').forEach(el=>{
+    el.addEventListener('click',()=>confirmDeleteBoard(el.dataset.board));
+  });
+  applyViewCollapse('view-monthly','展开或收起月计划内容');
+}
+
+function addBoard(){
+  state.monthly.boards.push({id:uid(),name:'新板块',icon:'briefcase',color:'#6b7c72',mindset:'点击编辑这一板块的提醒。',method:'点击编辑投入方式。',goals:[]});
+  saveMonthly();renderMonthly();renderToday();checkBackupReminder();showToast('已新增板块','success');
+}
+function confirmDeleteBoard(boardId){
+  const board=state.monthly.boards.find(item=>item.id===boardId);
+  if(!board)return;
+  const remove=()=>{state.monthly.boards=state.monthly.boards.filter(item=>item.id!==boardId);saveMonthly();renderMonthly();renderToday();showToast('已删除板块','success');};
+  const count=treeCount(board.goals);if(!count){remove();return;}
+  showModal({title:'确认删除板块',body:'“'+escapeHtml(board.name)+'”包含 '+count+' 个目标。删除后这些目标将无法恢复。',actions:[{text:'取消',class:'btn-ghost',action:hideModal},{text:'删除板块',class:'btn-danger',action:()=>{hideModal();remove();}}]});
 }
 
 function addGoal(boardId){
@@ -1633,28 +1820,28 @@ function addGoal(boardId){
   if(!input)return;
   const text=input.value.trim();
   if(!text){showToast('请输入目标内容','warning');return;}
-  board.goals.push({id:uid(),text,type:'bool',done:false});
+  board.goals.push({id:uid(),text,type:'bool',done:false,children:[]});
   saveMonthly();
   renderMonthly();
   renderToday();
   checkBackupReminder();
   showToast('已添加目标','success');
 }
+function addGoalChild(boardId,parentId){const board=state.monthly.boards.find(b=>b.id===boardId),found=board&&treeFind(board.goals,parentId),text=window.prompt('添加下级目标');if(!found||!text||!text.trim())return;found.node.children.push({id:uid(),text:text.trim(),type:'bool',done:false,children:[]});saveMonthly();renderMonthly();renderToday();checkBackupReminder();}
 
 function deleteGoal(boardId,goalId){
   const board=state.monthly.boards.find(b=>b.id===boardId);
   if(!board)return;
-  board.goals=board.goals.filter(g=>g.id!==goalId);
-  saveMonthly();
-  renderMonthly();
-  renderToday();
-  showToast('已删除目标','success');
+  const found=treeFind(board.goals,goalId);if(!found)return;
+  const remove=()=>{treeRemove(board.goals,goalId);saveMonthly();renderMonthly();renderToday();showToast('已删除目标','success');};
+  if(treeCount(found.node.children)){showModal({title:'确认删除目标',body:'该目标包含 '+treeCount(found.node.children)+' 个下级目标。删除后无法恢复。',actions:[{text:'取消',class:'btn-ghost',action:hideModal},{text:'删除目标',class:'btn-danger',action:()=>{hideModal();remove();}}]});return;}
+  remove();return;
 }
 
 function toggleGoal(boardId,goalId){
   const board=state.monthly.boards.find(b=>b.id===boardId);
   if(!board)return;
-  const goal=board.goals.find(g=>g.id===goalId);
+  const found=treeFind(board.goals,goalId),goal=found&&found.node;
   if(!goal)return;
   const wasDone=goal.type==='bool'?goal.done:(goal.current>=goal.target);
   if(goal.type==='bool'){
@@ -1684,7 +1871,7 @@ function toggleGoal(boardId,goalId){
 function updateGoalCount(boardId,goalId,delta){
   const board=state.monthly.boards.find(b=>b.id===boardId);
   if(!board)return;
-  const goal=board.goals.find(g=>g.id===goalId);
+  const found=treeFind(board.goals,goalId),goal=found&&found.node;
   if(!goal||goal.type!=='count')return;
   goal.current=Math.max(0,Math.min(goal.target*2,goal.current+delta));
   saveMonthly();
@@ -1696,7 +1883,7 @@ function updateGoalCount(boardId,goalId,delta){
 function editGoalText(boardId,goalId,newText){
   const board=state.monthly.boards.find(b=>b.id===boardId);
   if(!board)return;
-  const goal=board.goals.find(g=>g.id===goalId);
+  const found=treeFind(board.goals,goalId),goal=found&&found.node;
   if(!goal)return;
   goal.text=newText;
   saveMonthly();
@@ -1727,7 +1914,7 @@ function editBoardName(boardId,newText){
 function editGoalCount(boardId,goalId,field,value){
   const board=state.monthly.boards.find(b=>b.id===boardId);
   if(!board)return;
-  const goal=board.goals.find(g=>g.id===goalId);
+  const found=treeFind(board.goals,goalId),goal=found&&found.node;
   if(!goal||goal.type!=='count')return;
   if(field==='current'){
     goal.current=Math.max(0,Math.min(value,goal.target*2));
@@ -1738,25 +1925,6 @@ function editGoalCount(boardId,goalId,field,value){
   saveMonthly();
   renderMonthly();
   renderToday();
-}
-
-/* Goal drag & drop */
-let goalDragBoardId=null,goalDragSrcId=null;
-function handleGoalDragStart(e){goalDragBoardId=this.dataset.board;goalDragSrcId=this.dataset.goal;this.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
-function handleGoalDragEnd(e){this.classList.remove('dragging');document.querySelectorAll('#view-monthly .goal-row.drag-over').forEach(el=>el.classList.remove('drag-over'));}
-function handleGoalDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';if(this.dataset.goal!==goalDragSrcId)this.classList.add('drag-over');}
-function handleGoalDrop(e){
-  e.preventDefault();this.classList.remove('drag-over');
-  const tgtId=this.dataset.goal;
-  if(!goalDragSrcId||goalDragSrcId===tgtId||this.dataset.board!==goalDragBoardId)return;
-  const board=state.monthly.boards.find(b=>b.id===goalDragBoardId);
-  if(!board)return;
-  const src=board.goals.findIndex(g=>g.id===goalDragSrcId);
-  const tgt=board.goals.findIndex(g=>g.id===tgtId);
-  if(src<0||tgt<0)return;
-  const [moved]=board.goals.splice(src,1);
-  board.goals.splice(tgt,0,moved);
-  saveMonthly();renderMonthly();renderToday();
 }
 
 /* ========== Weekly Module ========== */
@@ -1772,6 +1940,7 @@ function getCurrentWeekData(offset){
 }
 
 function renderWeekly(){
+  document.getElementById('view-weekly').dataset.viewCollapsed='';
   const week=getCurrentWeekData(state.weekOffset);
   const weekMonday=parseLocalDate(week.weekStart);
   const today=new Date();
@@ -1780,11 +1949,12 @@ function renderWeekly(){
   const todayDayNum=today.getDay()||7;
   
   // Progress
-  const done=week.tasks.filter(t=>t.done).length;
-  const total=week.tasks.length;
+  const allWeekTasks=[];treeWalk(week.tasks,task=>allWeekTasks.push(task));
+  const done=allWeekTasks.filter(t=>t.done).length;
+  const total=allWeekTasks.length;
   const rate=total>0?Math.round(done/total*100):0;
   
-  let html='<div class="section-header"><div><div class="section-title">每周待办清单</div><div class="section-sub">勾选完成 · 按类型颜色编码</div></div></div>';
+  let html='<div class="section-header"><div><div class="section-title">每周待办清单</div>'+editableModuleSubtitle('weekly','勾选完成 · 按类型颜色编码')+'</div></div>';
   
   // Sunday alert
   if(today.getDay()===0&&state.weekOffset<=0){
@@ -1809,32 +1979,23 @@ function renderWeekly(){
     const dayDate=addDays(weekMonday,d-1);
     const isToday=isThisWeek&&d===todayDayNum;
     const dayTasks=week.tasks.filter(t=>t.day===d);
-    const dayDone=dayTasks.filter(t=>t.done).length;
+    const dayAll=[];dayTasks.forEach(task=>treeWalk([task],item=>dayAll.push(item)));
+    const dayDone=dayAll.filter(t=>t.done).length;
+    const renderTask=(task,parentId)=>{const tdata=TASK_TYPES[task.type]||TASK_TYPES.work,hasChildren=treeHasDescendants(task),collapseId=week.weekKey+'--'+task.id;return '<div class="task-tree sort-item" data-id="'+task.id+'" data-week="'+week.weekKey+'" data-sort-id="'+task.id+'" data-sort-parent="'+parentId+'" data-day="'+d+'"><div class="task '+(task.done?'done':'')+(task.important?' task-important':'')+'" style="border-left-color:'+tdata.border+';background:'+tdata.bg+'">'+
+      collapseButton('weekly-task',collapseId,'展开或收起下级任务',hasChildren)+'<span class="task-grip sort-grip" tabindex="0" role="button" aria-label="拖动排序；Alt 加方向键排序">'+ICONS.grip+'</span><button type="button" class="task-check '+(task.done?'checked':'')+'" aria-label="切换任务 '+escapeHtml(task.text)+' 完成状态" aria-pressed="'+task.done+'">'+ICONS.check+'</button><div class="task-body"><span class="task-text" contenteditable="true" data-id="'+task.id+'" data-week="'+week.weekKey+'">'+escapeHtml(task.text)+'</span><span class="task-time" contenteditable="true" data-id="'+task.id+'" data-week="'+week.weekKey+'" data-field="time">'+(task.time||'--:--')+'</span></div><button type="button" class="task-star'+(task.important?' active':'')+'" aria-label="'+(task.important?'取消重点':'标记重点')+'" aria-pressed="'+task.important+'" data-id="'+task.id+'" data-week="'+week.weekKey+'">'+ICONS.star+'</button><span class="task-type-tag" style="color:'+tdata.color+';background:'+tdata.color+'1a">'+tdata.label+'</span><button type="button" class="tree-add-child" data-week="'+week.weekKey+'" data-parent="'+task.id+'" aria-label="添加下级任务">'+ICONS.plus+'</button><button type="button" class="task-del" aria-label="删除任务 '+escapeHtml(task.text)+'">'+ICONS.trash+'</button></div>'+collapseRegion('weekly-task',collapseId,'<div class="tree-children">'+task.children.map(child=>renderTask(child,task.id)).join('')+'</div>')+'</div>';};
     
+    const dayScope=week.weekKey+'-'+d;
     html+='<div class="day-card'+(isToday?' today-card':'')+'">'+
       '<div class="day-header">'+
-        '<div><div class="day-name">'+DAY_NAMES[d-1]+(isToday?' · 今天':'')+'</div><div class="day-date">'+fmtDateShort(dayDate)+'</div></div>'+
+        '<div style="display:flex;align-items:center;gap:5px">'+collapseButton('weekly-day',dayScope,'展开或收起'+DAY_NAMES[d-1]+'任务',true)+'<div><div class="day-name">'+DAY_NAMES[d-1]+(isToday?' · 今天':'')+'</div><div class="day-date">'+fmtDateShort(dayDate)+'</div></div></div>'+
         '<div class="day-count">'+dayDone+'/'+dayTasks.length+'</div>'+
       '</div>'+
-      '<div class="day-tasks">';
+      collapseRegionStart('weekly-day',dayScope)+'<div class="day-tasks">';
     
     if(dayTasks.length===0){
       html+='<div class="day-empty">暂无任务</div>';
     }else{
-      dayTasks.forEach((task,ti)=>{
-        const tdata=TASK_TYPES[task.type]||TASK_TYPES.work;
-        html+='<div class="task'+(task.done?' done':'')+(task.important?' task-important':'')+'" style="border-left-color:'+tdata.border+';background:'+tdata.bg+'" data-id="'+task.id+'" data-week="'+week.weekKey+'" draggable="true" data-day="'+d+'">'+
-          '<span class="task-grip" aria-hidden="true">'+ICONS.grip+'</span>'+
-          '<button type="button" class="task-check '+(task.done?'checked':'')+'" aria-label="切换任务 '+escapeHtml(task.text)+' 完成状态" aria-pressed="'+task.done+'">'+ICONS.check+'</button>'+
-          '<div class="task-body">'+
-            '<span class="task-text" contenteditable="true" data-id="'+task.id+'" data-week="'+week.weekKey+'">'+escapeHtml(task.text)+'</span>'+
-            '<span class="task-time" contenteditable="true" data-id="'+task.id+'" data-week="'+week.weekKey+'" data-field="time">'+(task.time||'--:--')+'</span>'+
-          '</div>'+
-          '<button type="button" class="task-star'+(task.important?' active':'')+'" aria-label="标记重点" data-id="'+task.id+'" data-week="'+week.weekKey+'">'+ICONS.star+'</button>'+
-          '<span class="task-type-tag" style="color:'+tdata.color+';background:'+tdata.color+'1a">'+tdata.label+'</span>'+
-          '<button type="button" class="task-del" aria-label="删除任务 '+escapeHtml(task.text)+'">'+ICONS.trash+'</button>'+
-        '</div>';
-      });
+      dayTasks.forEach(task=>{html+=renderTask(task,'day-'+d);});
     }
     
     html+='</div>';
@@ -1854,21 +2015,22 @@ function renderWeekly(){
       '</div>'+
     '</div>';
     
-    html+='</div>';
+    html+=collapseRegionEnd()+'</div>';
   }
   html+='</div>';
   
   document.getElementById('view-weekly').innerHTML=html;
   
   // Bind task events
-  bindWeeklyEvents();
+  bindModuleSubtitles(document.getElementById('view-weekly'));bindWeeklyEvents();
+  applyViewCollapse('view-weekly','展开或收起周计划内容');
 }
 
 function bindWeeklyEvents(){
   // Task checkbox toggle
   document.querySelectorAll('#view-weekly .task-check').forEach(el=>{
     el.addEventListener('click',()=>{
-      const taskEl=el.closest('.task');
+      const taskEl=el.closest('.task-tree');
       toggleTask(taskEl.dataset.week,taskEl.dataset.id);
     });
   });
@@ -1876,7 +2038,7 @@ function bindWeeklyEvents(){
   // Task delete
   document.querySelectorAll('#view-weekly .task-del').forEach(el=>{
     el.addEventListener('click',()=>{
-      const taskEl=el.closest('.task');
+      const taskEl=el.closest('.task-tree');
       deleteTask(taskEl.dataset.week,taskEl.dataset.id);
     });
   });
@@ -1915,13 +2077,9 @@ function bindWeeklyEvents(){
     });
   });
   
-  // Drag & drop
-  document.querySelectorAll('#view-weekly .task[draggable]').forEach(el=>{
-    el.addEventListener('dragstart',handleTaskDragStart);
-    el.addEventListener('dragend',handleTaskDragEnd);
-    el.addEventListener('dragover',handleTaskDragOver);
-    el.addEventListener('drop',handleTaskDrop);
-  });
+  bindCollapseControls(document.getElementById('view-weekly'),renderWeekly);
+  document.querySelectorAll('#view-weekly .tree-add-child').forEach(el=>el.addEventListener('click',()=>addTaskChild(el.dataset.week,el.dataset.parent)));
+  bindSortController(document.getElementById('view-weekly'),move=>{const source=document.querySelector('#view-weekly .sort-item[data-sort-id="'+move.source+'"]'),week=source&&state.weekly.find(w=>weekMatches(w,source.dataset.week)),found=week&&treeFind(week.tasks,move.source);if(found&&moveSiblingToIndex(found.list,move.source,move.index)){saveWeekly();renderWeekly();renderToday();}});
   
   // Add task button
   document.querySelectorAll('#view-weekly .task-add-btn').forEach(btn=>{
@@ -1963,18 +2121,19 @@ function addTask(weekKey,day,text,type,time){
     week={weekKey:weekKey,weekStart:fmtDate(targetMonday),tasks:[]};
     state.weekly.push(week);
   }
-  week.tasks.push({id:uid(),day:day,text:text,type:type,done:false,important:false,time:time||''});
+  week.tasks.push({id:uid(),day:day,text:text,type:type,done:false,important:false,time:time||'',children:[]});
   saveWeekly();
   renderWeekly();
   renderToday();
   checkBackupReminder();
   showToast('已添加','success');
 }
+function addTaskChild(weekKey,parentId){const week=state.weekly.find(w=>weekMatches(w,weekKey)),found=week&&treeFind(week.tasks,parentId),text=window.prompt('添加下级任务');if(!found||!text||!text.trim())return;const parent=found.node;parent.children.push({id:uid(),day:parent.day,text:text.trim(),type:parent.type,done:false,important:false,time:'',children:[]});saveWeekly();renderWeekly();renderToday();checkBackupReminder();}
 
 function toggleTask(weekKey,taskId){
   const week=state.weekly.find(w=>weekMatches(w,weekKey));
   if(!week)return;
-  const task=week.tasks.find(t=>t.id===taskId);
+  const found=treeFind(week.tasks,taskId),task=found&&found.node;
   if(!task)return;
   const wasDone=task.done;
   task.done=!task.done;
@@ -1995,17 +2154,16 @@ function toggleTask(weekKey,taskId){
 function deleteTask(weekKey,taskId){
   const week=state.weekly.find(w=>weekMatches(w,weekKey));
   if(!week)return;
-  week.tasks=week.tasks.filter(t=>t.id!==taskId);
-  saveWeekly();
-  renderWeekly();
-  renderToday();
-  showToast('已删除','success');
+  const found=treeFind(week.tasks,taskId);if(!found)return;
+  const remove=()=>{treeRemove(week.tasks,taskId);saveWeekly();renderWeekly();renderToday();showToast('已删除','success');};
+  if(treeCount(found.node.children)){showModal({title:'确认删除任务',body:'该任务包含 '+treeCount(found.node.children)+' 个下级任务。删除后无法恢复。',actions:[{text:'取消',class:'btn-ghost',action:hideModal},{text:'删除任务',class:'btn-danger',action:()=>{hideModal();remove();}}]});return;}
+  remove();return;
 }
 
 function editTaskText(weekKey,taskId,newText){
   const week=state.weekly.find(w=>weekMatches(w,weekKey));
   if(!week)return;
-  const task=week.tasks.find(t=>t.id===taskId);
+  const found=treeFind(week.tasks,taskId),task=found&&found.node;
   if(!task)return;
   task.text=newText;
   saveWeekly();
@@ -2015,7 +2173,7 @@ function editTaskText(weekKey,taskId,newText){
 function editTaskTime(weekKey,taskId,newTime){
   const week=state.weekly.find(w=>weekMatches(w,weekKey));
   if(!week)return;
-  const task=week.tasks.find(t=>t.id===taskId);
+  const found=treeFind(week.tasks,taskId),task=found&&found.node;
   if(!task)return;
   task.time=newTime;
   saveWeekly();
@@ -2025,58 +2183,15 @@ function editTaskTime(weekKey,taskId,newTime){
 function toggleTaskImportant(weekKey,taskId){
   const week=state.weekly.find(w=>weekMatches(w,weekKey));
   if(!week)return;
-  const task=week.tasks.find(t=>t.id===taskId);
+  const found=treeFind(week.tasks,taskId),task=found&&found.node;
   if(!task)return;
   task.important=!task.important;
   saveWeekly();
   // Re-render without full page flicker
-  const el=document.querySelector('#view-weekly .task[data-id="'+taskId+'"]');
+  const el=document.querySelector('#view-weekly .task-tree[data-id="'+taskId+'"] > .task');
   if(el)el.classList.toggle('task-important',task.important);
   const star=document.querySelector('#view-weekly .task-star[data-id="'+taskId+'"]');
-  if(star)star.classList.toggle('active',task.important);
-}
-
-/* Drag & drop handlers */
-let dragSrcTaskId=null,dragSrcWeekKey=null;
-function handleTaskDragStart(e){
-  const task=this.closest('.task');
-  dragSrcTaskId=task.dataset.id;
-  dragSrcWeekKey=task.dataset.week;
-  task.classList.add('dragging');
-  e.dataTransfer.effectAllowed='move';
-  e.dataTransfer.setData('text/plain',task.dataset.id);
-}
-function handleTaskDragEnd(e){
-  this.classList.remove('dragging');
-  document.querySelectorAll('#view-weekly .task.drag-over').forEach(el=>el.classList.remove('drag-over'));
-  dragSrcTaskId=null;dragSrcWeekKey=null;
-}
-function handleTaskDragOver(e){
-  e.preventDefault();
-  e.dataTransfer.dropEffect='move';
-  const task=this.closest('.task');
-  if(task.dataset.id!==dragSrcTaskId){
-    task.classList.add('drag-over');
-  }
-}
-function handleTaskDrop(e){
-  e.preventDefault();
-  const targetTask=this.closest('.task');
-  targetTask.classList.remove('drag-over');
-  const targetId=targetTask.dataset.id;
-  if(!dragSrcTaskId||dragSrcTaskId===targetId||dragSrcWeekKey!==targetTask.dataset.week)return;
-  const week=state.weekly.find(w=>weekMatches(w,dragSrcWeekKey));
-  if(!week)return;
-  const srcIdx=week.tasks.findIndex(t=>t.id===dragSrcTaskId);
-  const tgtIdx=week.tasks.findIndex(t=>t.id===targetId);
-  if(srcIdx<0||tgtIdx<0)return;
-  // Only allow same-day reorder
-  if(week.tasks[srcIdx].day!==week.tasks[tgtIdx].day)return;
-  const [moved]=week.tasks.splice(srcIdx,1);
-  week.tasks.splice(tgtIdx,0,moved);
-  saveWeekly();
-  renderWeekly();
-  renderToday();
+  if(star){star.classList.toggle('active',task.important);star.setAttribute('aria-pressed',String(task.important));star.setAttribute('aria-label',task.important?'取消重点':'标记重点');}
 }
 
 function changeWeek(delta){
@@ -2238,62 +2353,58 @@ function doGeneratePlan(targetMonday,weekKey,overwrite){
 
 /* ========== Cases Module ========== */
 function renderCases(){
-  const courtCases=state.cases.cases.filter(c=>c.category==='court');
-  const preservationCases=state.cases.cases.filter(c=>c.category==='preservation');
-  
-  const renderCaseCard=(c)=>{
+  document.getElementById('view-cases').dataset.viewCollapsed='';
+  const renderCaseCard=(c,parentId)=>{
     const cd=getCountdown(c.date);
-    return '<div class="case-card '+(!c.done&&cd.overdue?'overdue':'')+(!c.done&&!cd.overdue&&cd.urgent?'urgent':'')+(c.done?' done':'')+'">'+
+    const hasChildren=treeHasDescendants(c),collapseId=c.category+'--'+c.id;
+    return '<div class="case-tree sort-item" data-id="'+c.id+'" data-sort-id="'+c.id+'" data-sort-parent="'+parentId+'"><div class="case-card '+(!c.done&&cd.overdue?'overdue':'')+(!c.done&&!cd.overdue&&cd.urgent?'urgent':'')+(c.done?' done':'')+'">'+
+      collapseButton('case',collapseId,'展开或收起下级案件',hasChildren)+'<span class="task-grip sort-grip" tabindex="0" role="button" aria-label="拖动排序；Alt 加方向键排序">'+ICONS.grip+'</span>'+
       '<div class="case-info">'+
         '<div class="case-name" contenteditable="true" data-id="'+c.id+'">'+escapeHtml(c.name)+'</div>'+
         (c.note?'<div class="case-note" contenteditable="true" data-id="'+c.id+'" data-field="note">'+escapeHtml(c.note)+'</div>':'<div class="case-note" contenteditable="true" data-id="'+c.id+'" data-field="note" style="color:var(--text-4);font-style:italic">点击添加备注</div>')+
-        '<div class="case-date">'+c.date+(c.time?' '+c.time:'')+(c.category==='court'?' · 开庭':' · 保全到期')+'</div>'+
+        '<input type="date" class="case-date-input" aria-label="编辑 '+escapeHtml(c.name)+' 日期" data-id="'+c.id+'" value="'+escapeHtml(c.date)+'">'+
       '</div>'+
       '<div class="case-countdown">'+
         (c.done?'<div class="countdown-num" style="font-size:14px;color:var(--text-3)">已完成</div>':
         '<div class="countdown-num">'+cd.text+'</div><div class="countdown-label">'+(cd.overdue?'已逾期':'倒计时')+'</div>')+
       '</div>'+
-      '<button type="button" class="case-del" aria-label="删除案件 '+escapeHtml(c.name)+'" data-id="'+c.id+'">'+ICONS.trash+'</button>'+
-    '</div>';
+      '<button type="button" class="goal-check '+(c.done?'checked':'')+'" aria-label="切换案件 '+escapeHtml(c.name)+' 完成状态" aria-pressed="'+c.done+'" data-id="'+c.id+'">'+ICONS.check+'</button>'+
+      '<button type="button" class="tree-add-child" aria-label="添加下级案件" data-parent="'+c.id+'">'+ICONS.plus+'</button><button type="button" class="case-del" aria-label="删除案件 '+escapeHtml(c.name)+'" data-id="'+c.id+'">'+ICONS.trash+'</button>'+
+    '</div>'+collapseRegion('case',collapseId,'<div class="tree-children">'+c.children.map(child=>renderCaseCard(child,c.id)).join('')+'</div>')+'</div>';
   };
   
-  let html='<div class="section-header"><div><div class="section-title">案件管理</div><div class="section-sub">开庭日程 · 保全到期提醒</div></div></div>';
+  let html='<div class="section-header"><div><div class="section-title">案件管理</div>'+editableModuleSubtitle('cases','开庭日程 · 保全到期提醒')+'</div></div>';
   
   // Add form
   html+='<div class="case-add-form">'+
     '<input type="text" id="case-name" placeholder="案件名称">'+
-    '<select id="case-category"><option value="court">开庭</option><option value="preservation">保全</option></select>'+
+    '<select id="case-category">'+state.cases.categories.map(category=>'<option value="'+escapeHtml(category.id)+'">'+escapeHtml(category.name)+'</option>').join('')+'</select>'+
     '<input type="date" id="case-date">'+
     '<input type="text" id="case-note" placeholder="备注（可选）">'+
     '<button class="btn btn-primary" onclick="addCase()">添加</button>'+
   '</div>';
   
-  // Court cases
-  html+='<div class="case-section">'+
-    '<div class="case-section-title">'+ICONS.cases+' 开庭日程 <span class="count">('+courtCases.length+')</span></div>';
-  if(courtCases.length===0){
-    html+='<div class="empty-state"><p>暂无开庭日程</p></div>';
-  }else{
-    html+='<div class="case-list">'+courtCases.map(renderCaseCard).join('')+'</div>';
-  }
-  html+='</div>';
-  
-  // Preservation cases
-  html+='<div class="case-section">'+
-    '<div class="case-section-title">'+ICONS.clock+' 保全到期 <span class="count">('+preservationCases.length+')</span></div>';
-  if(preservationCases.length===0){
-    html+='<div class="empty-state"><p>暂无保全到期提醒</p></div>';
-  }else{
-    html+='<div class="case-list">'+preservationCases.map(renderCaseCard).join('')+'</div>';
-  }
-  html+='</div>';
+  html+='<div class="case-section"><div class="case-section-title">分类管理</div><div class="goal-add"><input type="text" class="goal-add-input" id="case-category-name" placeholder="新增分类…" onkeydown="if(event.key===\'Enter\')addCaseCategory()"><button type="button" class="goal-add-btn" aria-label="新增案件分类" onclick="addCaseCategory()">'+ICONS.plus+'</button></div></div>';
+  state.cases.categories.forEach(category=>{
+    const items=state.cases.cases.filter(c=>c.category===category.id);
+    const count=treeCount(items);
+    html+='<div class="case-section sort-item" data-sort-id="'+category.id+'" data-sort-parent="case-categories"><div class="case-section-title">'+collapseButton('case-category',category.id,'展开或收起分类',count>0)+'<span class="task-grip sort-grip module-sort-grip" tabindex="0" role="button" aria-label="拖动分类排序；Alt 加方向键排序">'+ICONS.grip+'</span>'+(category.icon==='clock'?ICONS.clock:ICONS.cases)+' <span class="case-category-name" contenteditable="true" data-id="'+category.id+'">'+escapeHtml(category.name)+'</span> <span class="count">('+count+')</span><button type="button" class="case-del case-category-del" aria-label="删除分类 '+escapeHtml(category.name)+'" data-id="'+category.id+'">'+ICONS.trash+'</button></div>';
+    html+=collapseRegion('case-category',category.id,items.length?'<div class="case-list">'+items.map(c=>renderCaseCard(c,'case-root-'+category.id)).join('')+'</div>':'<div class="empty-state"><p>暂无案件</p></div>');
+    html+='</div>';
+  });
   
   document.getElementById('view-cases').innerHTML=html;
   
   // Bind delete
   document.querySelectorAll('#view-cases .case-del').forEach(el=>{
-    el.addEventListener('click',()=>deleteCase(el.dataset.id));
+    el.addEventListener('click',()=>el.classList.contains('case-category-del')?confirmDeleteCaseCategory(el.dataset.id):deleteCase(el.dataset.id));
   });
+  document.querySelectorAll('#view-cases .goal-check').forEach(el=>el.addEventListener('click',()=>toggleCaseDone(el.dataset.id)));
+  document.querySelectorAll('#view-cases .case-date-input').forEach(el=>el.addEventListener('change',()=>editCaseDate(el.dataset.id,el.value)));
+  document.querySelectorAll('#view-cases .case-category-name[contenteditable]').forEach(el=>bindInlineText(el,(value)=>editCaseCategoryName(el.dataset.id,value)));
+  bindModuleSubtitles(document.getElementById('view-cases'));bindCollapseControls(document.getElementById('view-cases'),renderCases);
+  document.querySelectorAll('#view-cases .tree-add-child').forEach(el=>el.addEventListener('click',()=>addCaseChild(el.dataset.parent)));
+  bindSortController(document.getElementById('view-cases'),move=>{if(move.parent==='case-categories'){if(moveSiblingToIndex(state.cases.categories,move.source,move.index)){saveCases();renderCases();}}else{const found=treeFind(state.cases.cases,move.source);if(found&&moveSiblingToIndex(found.list,move.source,move.index)){saveCases();renderCases();renderToday();}}});
   // Inline edits
   document.querySelectorAll('#view-cases .case-name[contenteditable]').forEach(el=>{
     let orig=el.textContent;
@@ -2313,7 +2424,13 @@ function renderCases(){
     });
     el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}});
   });
+  applyViewCollapse('view-cases','展开或收起案件内容');
 }
+
+function bindInlineText(el,save){let orig=el.textContent;el.addEventListener('blur',()=>{const value=el.textContent.trim();if(value&&value!==orig){save(value);orig=value;}else if(!value)el.textContent=orig;});el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}});}
+function addCaseCategory(){const input=document.getElementById('case-category-name');const name=input&&input.value.trim();if(!name)return;state.cases.categories.push({id:uid(),name,icon:'cases'});saveCases();renderCases();checkBackupReminder();showToast('已新增分类','success');}
+function editCaseCategoryName(id,name){const category=state.cases.categories.find(item=>item.id===id);if(!category)return;category.name=name;saveCases();}
+function confirmDeleteCaseCategory(id){const category=state.cases.categories.find(item=>item.id===id);if(!category)return;const linked=[];treeWalk(state.cases.cases,item=>{if(item.category===id)linked.push(item)});const remove=()=>{state.cases.categories=state.cases.categories.filter(item=>item.id!==id);const prune=nodes=>(nodes||[]).filter(item=>item.category!==id).map(item=>Object.assign(item,{children:prune(item.children)}));state.cases.cases=prune(state.cases.cases);saveCases();renderCases();renderToday();showToast('已删除分类','success');};if(!linked.length){remove();return;}showModal({title:'确认删除分类',body:'“'+escapeHtml(category.name)+'”含有 '+linked.length+' 个案件。删除分类会一并删除这些案件。',actions:[{text:'取消',class:'btn-ghost',action:hideModal},{text:'删除分类',class:'btn-danger',action:()=>{hideModal();remove();}}]});}
 
 function addCase(){
   const name=document.getElementById('case-name').value.trim();
@@ -2321,7 +2438,7 @@ function addCase(){
   const date=document.getElementById('case-date').value;
   const note=document.getElementById('case-note').value.trim();
   if(!name||!date){showToast('请填写案件名称和日期','warning');return;}
-  state.cases.cases.push({id:uid(),name,category,date,time:'',note,done:false});
+  state.cases.cases.push({id:uid(),name,category,date,time:'',note,done:false,children:[]});
   saveCases();
   renderCases();
   renderToday();
@@ -2331,17 +2448,14 @@ function addCase(){
   document.getElementById('case-date').value='';
   document.getElementById('case-note').value='';
 }
+function addCaseChild(parentId){const found=treeFind(state.cases.cases,parentId),text=window.prompt('添加下级案件');if(!found||!text||!text.trim())return;const parent=found.node;parent.children.push({id:uid(),name:text.trim(),category:parent.category,date:parent.date,time:'',note:'',done:false,children:[]});saveCases();renderCases();renderToday();checkBackupReminder();}
 
 function deleteCase(id){
-  state.cases.cases=state.cases.cases.filter(c=>c.id!==id);
-  saveCases();
-  renderCases();
-  renderToday();
-  showToast('已删除','success');
+  const found=treeFind(state.cases.cases,id);if(!found)return;const remove=()=>{treeRemove(state.cases.cases,id);saveCases();renderCases();renderToday();showToast('已删除','success');};if(treeCount(found.node.children)){showModal({title:'确认删除案件',body:'该案件包含 '+treeCount(found.node.children)+' 个下级案件。删除后无法恢复。',actions:[{text:'取消',class:'btn-ghost',action:hideModal},{text:'删除案件',class:'btn-danger',action:()=>{hideModal();remove();}}]});return;}remove();return;
 }
 
 function editCaseName(id,newText){
-  const c=state.cases.cases.find(c=>c.id===id);
+  const found=treeFind(state.cases.cases,id),c=found&&found.node;
   if(!c)return;
   c.name=newText;
   saveCases();
@@ -2349,14 +2463,15 @@ function editCaseName(id,newText){
 }
 
 function editCaseNote(id,newText){
-  const c=state.cases.cases.find(c=>c.id===id);
+  const found=treeFind(state.cases.cases,id),c=found&&found.node;
   if(!c)return;
   c.note=newText||'';
   saveCases();
 }
+function editCaseDate(id,date){const found=treeFind(state.cases.cases,id),c=found&&found.node;if(!c||!isValidLocalDateString(date)){showToast('请输入有效日期','warning');renderCases();return;}c.date=date;saveCases();renderCases();renderToday();}
 
 function toggleCaseDone(id){
-  const c=state.cases.cases.find(c=>c.id===id);
+  const found=treeFind(state.cases.cases,id),c=found&&found.node;
   if(!c)return;
   const wasDone=c.done;
   c.done=!c.done;
@@ -2375,238 +2490,62 @@ function toggleCaseDone(id){
 
 /* ========== Strategy Module ========== */
 function renderStrategy(){
-  let html='<div class="section-header"><div><div class="section-title">战略与固定动作</div><div class="section-sub">未来3个月计划 · 周循环固定动作 · 选题储备</div></div></div>';
-  
-  // 3-month goals
-  html+='<div class="strat-block">'+
-    '<div class="strat-block-title">未来3个月战略目标</div>'+
-    '<div class="strat-list">'+
-    state.strategy.goals.map(g=>
-      '<div class="strat-item '+(g.done?'done':'')+'" draggable="true" data-type="goal" data-id="'+g.id+'">'+
-        '<span class="task-grip" aria-hidden="true">'+ICONS.grip+'</span>'+
-        '<button type="button" class="goal-check '+(g.done?'checked':'')+'" aria-label="切换战略目标 '+escapeHtml(g.text)+' 完成状态" aria-pressed="'+g.done+'" data-type="goal" data-id="'+g.id+'">'+ICONS.check+'</button>'+
-        '<span class="strat-text" contenteditable="true" data-type="goal" data-id="'+g.id+'">'+escapeHtml(g.text)+'</span>'+
-        '<button type="button" class="strat-del" aria-label="删除战略目标" data-type="goal" data-id="'+g.id+'">'+ICONS.trash+'</button>'+
-      '</div>'
-    ).join('')+
-    '</div>'+
-    '<div class="strat-add"><input type="text" id="goal-input" placeholder="添加战略目标…" onkeydown="if(event.key===\'Enter\')addStrategyItem(\'goal\')"><button class="btn btn-ghost btn-sm" onclick="addStrategyItem(\'goal\')">添加</button></div>'+
-  '</div>';
-  
-  // Fixed actions
-  html+='<div class="strat-block">'+
-    '<div class="strat-block-title">每周固定动作</div>'+
-    '<div class="strat-list">'+
-    state.strategy.fixedActions.map(a=>
-      '<div class="strat-item '+(a.done?'done':'')+'" draggable="true" data-type="action" data-id="'+a.id+'">'+
-        '<span class="task-grip" aria-hidden="true">'+ICONS.grip+'</span>'+
-        '<button type="button" class="goal-check '+(a.done?'checked':'')+'" aria-label="切换固定动作 '+escapeHtml(a.text)+' 完成状态" aria-pressed="'+a.done+'" data-type="action" data-id="'+a.id+'">'+ICONS.check+'</button>'+
-        '<span class="strat-text" contenteditable="true" data-type="action" data-id="'+a.id+'">'+escapeHtml(a.text)+'</span>'+
-        '<button type="button" class="strat-del" aria-label="删除固定动作" data-type="action" data-id="'+a.id+'">'+ICONS.trash+'</button>'+
-      '</div>'
-    ).join('')+
-    '</div>'+
-    '<div class="strat-add"><input type="text" id="action-input" placeholder="添加固定动作…" onkeydown="if(event.key===\'Enter\')addStrategyItem(\'action\')"><button class="btn btn-ghost btn-sm" onclick="addStrategyItem(\'action\')">添加</button></div>'+
-  '</div>';
-  
-  // Topics
+  document.getElementById('view-strategy').dataset.viewCollapsed='';
   const statusLabels={idea:'灵感',writing:'写作中',published:'已发布'};
-  const statusOrder=['idea','writing','published'];
-  html+='<div class="strat-block">'+
-    '<div class="strat-block-title">选题储备</div>'+
-    '<div class="topic-list">'+
-    state.strategy.topics.map(t=>{
-      return '<div class="topic-item" style="border-left-color:'+(t.status==='idea'?'#7a8a83':t.status==='writing'?'#d4a017':'#3a9d6d')+'" draggable="true" data-id="'+t.id+'">'+
-        '<span class="task-grip" aria-hidden="true">'+ICONS.grip+'</span>'+
-        '<span class="topic-text" contenteditable="true" data-id="'+t.id+'">'+escapeHtml(t.text)+'</span>'+
-        '<button type="button" class="topic-status '+t.status+'" aria-label="切换选题 '+escapeHtml(t.text)+' 状态" data-id="'+t.id+'">'+statusLabels[t.status]+'</button>'+
-        '<button type="button" class="topic-del" aria-label="删除选题 '+escapeHtml(t.text)+'" data-id="'+t.id+'">'+ICONS.trash+'</button>'+
-      '</div>';
-    }).join('')+
-    '</div>'+
-    '<div class="strat-add"><input type="text" id="topic-input" placeholder="添加选题…" onkeydown="if(event.key===\'Enter\')addTopic()"><button class="btn btn-ghost btn-sm" onclick="addTopic()">添加</button></div>'+
-  '</div>';
-  
+  let html='<div class="section-header"><div><div class="section-title">战略与固定动作</div>'+editableModuleSubtitle('strategy','未来3个月计划 · 周循环固定动作 · 选题储备')+'</div><button type="button" class="btn btn-ghost btn-sm" onclick="addStrategyBlock()">新增区块</button></div>';
+  const strategyColumns=state.strategy.blocks.length<=4?Math.max(1,state.strategy.blocks.length):Math.ceil(state.strategy.blocks.length/2);
+  let blocksHtml='';
+  state.strategy.blocks.forEach(block=>{
+    const isTopic=block.kind==='topic';
+    const blockCount=treeCount(block.children);
+    const renderChild=(item,parentId)=>{const hasChildren=treeHasDescendants(item),collapseId=block.id+'--'+item.id,status=isTopic?(item.status||'idea'):'';return '<div class="strat-tree sort-item" data-block="'+block.id+'" data-id="'+item.id+'" data-sort-id="'+item.id+'" data-sort-parent="'+parentId+'"><div class="'+(isTopic?'topic-item':'strat-item')+' '+(!isTopic&&item.done?'done':'')+(item.important?' task-important':'')+'">'+
+      collapseButton('strategy-child',collapseId,'展开或收起下级项目',hasChildren)+'<span class="task-grip sort-grip" tabindex="0" role="button" aria-label="拖动排序；Alt 加方向键排序">'+ICONS.grip+'</span>'+
+      (isTopic?'<span class="topic-text" contenteditable="true" data-block="'+block.id+'" data-id="'+item.id+'">'+escapeHtml(item.text)+'</span><button type="button" class="topic-status '+status+'" aria-label="切换选题状态" data-block="'+block.id+'" data-id="'+item.id+'">'+statusLabels[status]+'</button>':'<button type="button" class="goal-check '+(item.done?'checked':'')+'" aria-label="切换完成状态" aria-pressed="'+item.done+'" data-block="'+block.id+'" data-id="'+item.id+'">'+ICONS.check+'</button><span class="strat-text" contenteditable="true" data-block="'+block.id+'" data-id="'+item.id+'">'+escapeHtml(item.text)+'</span>')+
+      '<button type="button" class="strategy-star '+(item.important?'active':'')+'" aria-label="'+(item.important?'取消重点':'标记重点')+'" aria-pressed="'+item.important+'" data-block="'+block.id+'" data-id="'+item.id+'">'+ICONS.star+'</button><button type="button" class="tree-add-child" data-block="'+block.id+'" data-parent="'+item.id+'" aria-label="添加下级项目">'+ICONS.plus+'</button><button type="button" class="'+(isTopic?'topic-del':'strat-del')+'" aria-label="删除子项" data-block="'+block.id+'" data-id="'+item.id+'">'+ICONS.trash+'</button></div>'+collapseRegion('strategy-child',collapseId,'<div class="tree-children">'+item.children.map(child=>renderChild(child,item.id)).join('')+'</div>')+'</div>';};
+    const childHtml=block.children.map(item=>renderChild(item,'block-'+block.id)).join('');
+    blocksHtml+='<div class="strat-block module-card sort-item" data-sort-id="'+block.id+'" data-sort-parent="strategy-blocks"><div class="strat-block-title strat-block-title-row">'+collapseButton('strategy-block',block.id,'展开或收起战略区块',blockCount>0)+'<span class="task-grip sort-grip module-sort-grip" tabindex="0" role="button" aria-label="拖动区块排序；Alt 加方向键排序">'+ICONS.grip+'</span><span class="strat-block-name" contenteditable="true" data-id="'+block.id+'">'+escapeHtml(block.name)+'</span><button type="button" class="strat-block-del" aria-label="删除战略区块" data-id="'+block.id+'">'+ICONS.trash+'</button></div>'+collapseRegion('strategy-block',block.id,'<div class="'+(isTopic?'topic-list':'strat-list')+'">'+childHtml+'</div><div class="strat-add"><input type="text" class="strategy-child-input" data-block="'+block.id+'" placeholder="添加'+(isTopic?'选题':'子项')+'…" onkeydown="if(event.key===\'Enter\')addStrategyChild(\''+block.id+'\')"><button class="btn btn-ghost btn-sm" onclick="addStrategyChild(\''+block.id+'\')">添加</button></div>')+'</div>';
+  });
+  html+='<div class="strategy-grid" style="--strategy-columns:'+strategyColumns+'">'+blocksHtml+'</div>';
   document.getElementById('view-strategy').innerHTML=html;
-  
-  // Bind
-  document.querySelectorAll('#view-strategy .goal-check').forEach(el=>{
-    el.addEventListener('click',()=>toggleStrategyItem(el.dataset.type,el.dataset.id));
-  });
-  document.querySelectorAll('#view-strategy .topic-status').forEach(el=>{
-    el.addEventListener('click',()=>cycleTopicStatus(el.dataset.id));
-  });
-  document.querySelectorAll('#view-strategy .topic-del').forEach(el=>{
-    el.addEventListener('click',()=>deleteTopic(el.dataset.id));
-  });
-  document.querySelectorAll('#view-strategy .strat-del').forEach(el=>{
-    el.addEventListener('click',()=>deleteStrategyItem(el.dataset.type,el.dataset.id));
-  });
-  // Drag & drop
-  document.querySelectorAll('#view-strategy .strat-item[draggable]').forEach(el=>{
-    el.addEventListener('dragstart',handleStratDragStart);
-    el.addEventListener('dragend',handleStratDragEnd);
-    el.addEventListener('dragover',handleStratDragOver);
-    el.addEventListener('drop',handleStratDrop);
-  });
-  document.querySelectorAll('#view-strategy .topic-item[draggable]').forEach(el=>{
-    el.addEventListener('dragstart',handleTopicDragStart);
-    el.addEventListener('dragend',handleTopicDragEnd);
-    el.addEventListener('dragover',handleTopicDragOver);
-    el.addEventListener('drop',handleTopicDrop);
-  });
-  // Inline edits
-  document.querySelectorAll('#view-strategy .strat-text[contenteditable]').forEach(el=>{
-    let orig=el.textContent;
-    el.addEventListener('blur',()=>{
-      const v=el.textContent.trim();
-      if(v&&v!==orig){editStrategyItemText(el.dataset.type,el.dataset.id,v);orig=v;}
-      else if(!v){el.textContent=orig;}
-    });
-    el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}});
-  });
-  document.querySelectorAll('#view-strategy .topic-text[contenteditable]').forEach(el=>{
-    let orig=el.textContent;
-    el.addEventListener('blur',()=>{
-      const v=el.textContent.trim();
-      if(v&&v!==orig){editTopicText(el.dataset.id,v);orig=v;}
-      else if(!v){el.textContent=orig;}
-    });
-    el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}});
-  });
+  document.querySelectorAll('#view-strategy .goal-check').forEach(el=>el.addEventListener('click',()=>toggleStrategyChild(el.dataset.block,el.dataset.id)));
+  document.querySelectorAll('#view-strategy .topic-status').forEach(el=>el.addEventListener('click',()=>cycleStrategyChildStatus(el.dataset.block,el.dataset.id)));
+  document.querySelectorAll('#view-strategy .strategy-star').forEach(el=>el.addEventListener('click',()=>toggleStrategyChildImportant(el.dataset.block,el.dataset.id)));
+  document.querySelectorAll('#view-strategy .strat-del,#view-strategy .topic-del').forEach(el=>el.addEventListener('click',()=>deleteStrategyChild(el.dataset.block,el.dataset.id)));
+  document.querySelectorAll('#view-strategy .strat-text[contenteditable],#view-strategy .topic-text[contenteditable]').forEach(el=>bindInlineText(el,value=>editStrategyChildText(el.dataset.block,el.dataset.id,value)));
+  document.querySelectorAll('#view-strategy .strat-block-name[contenteditable]').forEach(el=>bindInlineText(el,value=>editStrategyBlockName(el.dataset.id,value)));
+  document.querySelectorAll('#view-strategy .strat-block-del').forEach(el=>el.addEventListener('click',()=>confirmDeleteStrategyBlock(el.dataset.id)));
+  bindModuleSubtitles(document.getElementById('view-strategy'));bindCollapseControls(document.getElementById('view-strategy'),renderStrategy);
+  document.querySelectorAll('#view-strategy .tree-add-child').forEach(el=>el.addEventListener('click',()=>addStrategyChild(el.dataset.block,el.dataset.parent)));
+  bindSortController(document.getElementById('view-strategy'),move=>{if(move.parent==='strategy-blocks'){if(moveSiblingToIndex(state.strategy.blocks,move.source,move.index)){syncLegacyStrategyLists();saveStrategy();renderStrategy();}}else{const block=state.strategy.blocks.find(item=>treeFind(item.children,move.source)),found=block&&treeFind(block.children,move.source);if(found&&moveSiblingToIndex(found.list,move.source,move.index)){syncLegacyStrategyLists();saveStrategy();renderStrategy();renderToday();}}});
+  applyViewCollapse('view-strategy','展开或收起战略内容');
 }
 
-function toggleStrategyItem(type,id){
-  const list=type==='goal'?state.strategy.goals:state.strategy.fixedActions;
-  const item=list.find(i=>i.id===id);
-  if(!item)return;
-  const wasDone=item.done;
-  item.done=!item.done;
-  saveStrategy();
-  renderStrategy();
-  renderToday();
-  if(!wasDone&&item.done){
-    showUndoToast('已完成：'+item.text,()=>{
-      item.done=false;
-      saveStrategy();
-      renderStrategy();
-      renderToday();
-    });
-  }
-}
-
-function addStrategyItem(type){
-  const inputId=type==='goal'?'goal-input':'action-input';
-  const text=document.getElementById(inputId).value.trim();
-  if(!text)return;
-  const list=type==='goal'?state.strategy.goals:state.strategy.fixedActions;
-  list.push({id:uid(),text,done:false});
-  saveStrategy();
-  renderStrategy();
-  checkBackupReminder();
-  document.getElementById(inputId).value='';
-}
-
-function editStrategyItemText(type,id,newText){
-  const list=type==='goal'?state.strategy.goals:state.strategy.fixedActions;
-  const item=list.find(i=>i.id===id);
-  if(!item)return;
-  item.text=newText;
-  saveStrategy();
-  renderToday();
-}
-
-function addTopic(){
-  const text=document.getElementById('topic-input').value.trim();
-  if(!text)return;
-  state.strategy.topics.push({id:uid(),text,status:'idea'});
-  saveStrategy();
-  renderStrategy();
-  checkBackupReminder();
-  document.getElementById('topic-input').value='';
-}
-
-function editTopicText(id,newText){
-  const t=state.strategy.topics.find(t=>t.id===id);
-  if(!t)return;
-  t.text=newText;
-  saveStrategy();
-}
-
-function cycleTopicStatus(id){
-  const t=state.strategy.topics.find(t=>t.id===id);
-  if(!t)return;
-  const order=['idea','writing','published'];
-  t.status=order[(order.indexOf(t.status)+1)%3];
-  saveStrategy();
-  renderStrategy();
-}
-
-function deleteTopic(id){
-  state.strategy.topics=state.strategy.topics.filter(t=>t.id!==id);
-  saveStrategy();
-  renderStrategy();
-  showToast('已删除','success');
-}
-
-function deleteStrategyItem(type,id){
-  if(type==='goal'){
-    state.strategy.goals=state.strategy.goals.filter(g=>g.id!==id);
-  }else{
-    state.strategy.fixedActions=state.strategy.fixedActions.filter(a=>a.id!==id);
-  }
-  saveStrategy();
-  renderStrategy();
-  renderToday();
-  showToast('已删除','success');
-}
-
-/* Strategy drag & drop */
-let stratDragType=null,stratDragId=null;
-function handleStratDragStart(e){stratDragType=this.dataset.type;stratDragId=this.dataset.id;this.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
-function handleStratDragEnd(e){this.classList.remove('dragging');document.querySelectorAll('#view-strategy .strat-item.drag-over').forEach(el=>el.classList.remove('drag-over'));stratDragType=null;stratDragId=null;}
-function handleStratDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';if(this.dataset.id!==stratDragId&&this.dataset.type===stratDragType)this.classList.add('drag-over');}
-function handleStratDrop(e){
-  e.preventDefault();this.classList.remove('drag-over');
-  if(!stratDragId||this.dataset.id===stratDragId||this.dataset.type!==stratDragType)return;
-  const list=stratDragType==='goal'?state.strategy.goals:state.strategy.fixedActions;
-  const src=list.findIndex(i=>i.id===stratDragId);
-  const tgt=list.findIndex(i=>i.id===this.dataset.id);
-  if(src<0||tgt<0)return;
-  const [moved]=list.splice(src,1);
-  list.splice(tgt,0,moved);
-  saveStrategy();renderStrategy();renderToday();
-}
-
-/* Topic drag & drop */
-let topicDragId=null;
-function handleTopicDragStart(e){topicDragId=this.dataset.id;this.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
-function handleTopicDragEnd(e){this.classList.remove('dragging');document.querySelectorAll('#view-strategy .topic-item.drag-over').forEach(el=>el.classList.remove('drag-over'));topicDragId=null;}
-function handleTopicDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';if(this.dataset.id!==topicDragId)this.classList.add('drag-over');}
-function handleTopicDrop(e){
-  e.preventDefault();this.classList.remove('drag-over');
-  if(!topicDragId||this.dataset.id===topicDragId)return;
-  const list=state.strategy.topics;
-  const src=list.findIndex(i=>i.id===topicDragId);
-  const tgt=list.findIndex(i=>i.id===this.dataset.id);
-  if(src<0||tgt<0)return;
-  const [moved]=list.splice(src,1);
-  list.splice(tgt,0,moved);
-  saveStrategy();renderStrategy();
-}
+function getStrategyBlock(id){return state.strategy.blocks.find(block=>block.id===id)}
+function syncLegacyStrategyLists(){state.strategy.goals=(getStrategyBlock('goals')||{children:[]}).children;state.strategy.fixedActions=(getStrategyBlock('fixed-actions')||{children:[]}).children;state.strategy.topics=(getStrategyBlock('topics')||{children:[]}).children;}
+function addStrategyBlock(){state.strategy.blocks.push({id:uid(),name:'新战略区块',kind:'custom',children:[]});syncLegacyStrategyLists();saveStrategy();renderStrategy();checkBackupReminder();showToast('已新增战略区块','success');}
+function addStrategyChild(blockId,parentId){const block=getStrategyBlock(blockId);let text;if(parentId)text=window.prompt('添加下级项目');else{const input=document.querySelector('.strategy-child-input[data-block="'+blockId+'"]');text=input&&input.value.trim();}if(!block||!text||!text.trim())return;const list=parentId?(treeFind(block.children,parentId)||{}).node?.children:block.children;if(!list)return;list.push(block.kind==='topic'?{id:uid(),text:text.trim(),status:'idea',important:false,children:[]}:{id:uid(),text:text.trim(),done:false,important:false,children:[]});syncLegacyStrategyLists();saveStrategy();renderStrategy();renderToday();checkBackupReminder();}
+function editStrategyBlockName(id,name){const block=getStrategyBlock(id);if(!block)return;block.name=name;saveStrategy();}
+function editStrategyChildText(blockId,id,text){const block=getStrategyBlock(blockId),found=block&&treeFind(block.children,id),item=found&&found.node;if(!item)return;item.text=text;saveStrategy();renderToday();}
+function toggleStrategyChild(blockId,id){const block=getStrategyBlock(blockId),found=block&&treeFind(block.children,id),item=found&&found.node;if(!item||block.kind==='topic')return;item.done=!item.done;saveStrategy();renderStrategy();renderToday();}
+function cycleStrategyChildStatus(blockId,id){const block=getStrategyBlock(blockId),found=block&&treeFind(block.children,id),item=found&&found.node;if(!item||block.kind!=='topic')return;const order=['idea','writing','published'];item.status=order[(order.indexOf(item.status)+1)%3];saveStrategy();renderStrategy();}
+function toggleStrategyChildImportant(blockId,id){const block=getStrategyBlock(blockId),found=block&&treeFind(block.children,id),item=found&&found.node;if(!item)return;item.important=!item.important;saveStrategy();renderStrategy();}
+function deleteStrategyChild(blockId,id){const block=getStrategyBlock(blockId),found=block&&treeFind(block.children,id);if(!found)return;const remove=()=>{treeRemove(block.children,id);syncLegacyStrategyLists();saveStrategy();renderStrategy();renderToday();showToast('已删除','success');};if(treeCount(found.node.children)){showModal({title:'确认删除子项',body:'该子项包含 '+treeCount(found.node.children)+' 个下级项目。删除后无法恢复。',actions:[{text:'取消',class:'btn-ghost',action:hideModal},{text:'删除子项',class:'btn-danger',action:()=>{hideModal();remove();}}]});return;}remove();}
+function confirmDeleteStrategyBlock(id){const block=getStrategyBlock(id);if(!block)return;const remove=()=>{state.strategy.blocks=state.strategy.blocks.filter(item=>item.id!==id);syncLegacyStrategyLists();saveStrategy();renderStrategy();renderToday();showToast('已删除战略区块','success');};if(!block.children.length){remove();return;}showModal({title:'确认删除战略区块',body:'“'+escapeHtml(block.name)+'”包含 '+block.children.length+' 个子项。删除后这些子项将无法恢复。',actions:[{text:'取消',class:'btn-ghost',action:hideModal},{text:'删除区块',class:'btn-danger',action:()=>{hideModal();remove();}}]});}
 
 /* ========== History Module ========== */
 let historyWeekOffset=0;
 
 function renderHistory(){
+  document.getElementById('view-history').dataset.viewCollapsed='';
   const todayKey=getWeekKey(new Date());
   const pastWeeks=state.weekly.filter(w=>localDayNumber(parseLocalDate(w.weekStart))<localDayNumber(getMonday(new Date()))).sort((a,b)=>localDayNumber(parseLocalDate(b.weekStart))-localDayNumber(parseLocalDate(a.weekStart)));
   
-  let html='<div class="section-header"><div><div class="section-title">历史记录</div><div class="section-sub">回看往周完成情况 · 原始计划文档</div></div></div>';
+  let html='<div class="section-header"><div><div class="section-title">历史记录</div>'+editableModuleSubtitle('history','回看往周完成情况 · 原始计划文档')+'</div></div>';
   
   // Original plan reference
   html+='<div style="margin-bottom:20px">'+
-    '<div class="case-section-title" style="margin-bottom:10px">原始计划文档（2026年8月）</div>'+
+    '<div class="case-section-title" style="margin-bottom:10px">'+collapseButton('history-original','plan','展开或收起原始计划',true)+'原始计划文档（2026年8月）</div>'+
+    collapseRegionStart('history-original','plan')+
     '<div class="hist-ref">'+
       '<h4>一、四大核心板块</h4>'+
       '<ul>'+
@@ -2650,10 +2589,10 @@ function renderHistory(){
         '<li>打胎协议约定违约金的性质</li>'+
       '</ul>'+
     '</div>'+
-  '</div>';
+  '</div>'+collapseRegionEnd();
   
   // Past weeks browser
-  html+='<div class="case-section-title" style="margin-bottom:10px">往周完成记录</div>';
+  html+='<div class="case-section-title" style="margin-bottom:10px">'+collapseButton('history-weeks','records','展开或收起往周完成记录',true)+'往周完成记录</div>'+collapseRegionStart('history-weeks','records');
   
   if(pastWeeks.length===0){
     html+='<div class="hist-empty">暂无历史周数据</div>';
@@ -2662,8 +2601,9 @@ function renderHistory(){
     const week=pastWeeks[idx];
     const weekMonday=parseLocalDate(week.weekStart);
     
-    const total=week.tasks.length;
-    const done=week.tasks.filter(t=>t.done).length;
+    const historyTasks=[];treeWalk(week.tasks,task=>historyTasks.push(task));
+    const total=historyTasks.length;
+    const done=historyTasks.filter(t=>t.done).length;
     const undone=total-done;
     const rate=total>0?Math.round(done/total*100):0;
     
@@ -2681,7 +2621,7 @@ function renderHistory(){
     '</div>';
     
     for(let d=1;d<=7;d++){
-      const dayTasks=week.tasks.filter(t=>t.day===d);
+      const dayTasks=[];treeWalk(week.tasks,task=>{if(task.day===d)dayTasks.push(task)});
       if(dayTasks.length===0)continue;
       const dayDate=addDays(weekMonday,d-1);
       html+='<div class="hist-day-row">'+
@@ -2699,7 +2639,8 @@ function renderHistory(){
     }
   }
   
-  document.getElementById('view-history').innerHTML=html;
+  html+=collapseRegionEnd();document.getElementById('view-history').innerHTML=html;
+  bindModuleSubtitles(document.getElementById('view-history'));bindCollapseControls(document.getElementById('view-history'),renderHistory);applyViewCollapse('view-history','展开或收起历史内容');
 }
 
 function changeHistoryWeek(delta){
@@ -2730,10 +2671,10 @@ function showUndoToast(msg,undoFn){
 /* ========== Data Backup ========== */
 function getTotalCount(){
   let count=0;
-  state.monthly.boards.forEach(b=>count+=b.goals.length);
-  state.weekly.forEach(w=>count+=w.tasks.length);
-  count+=state.cases.cases.length;
-  count+=state.strategy.goals.length+state.strategy.fixedActions.length+state.strategy.topics.length;
+  state.monthly.boards.forEach(b=>count+=treeCount(b.goals));
+  state.weekly.forEach(w=>count+=treeCount(w.tasks));
+  count+=treeCount(state.cases.cases);
+  count+=state.strategy.blocks.reduce((sum,block)=>sum+treeCount(block.children),0);
   count+=state.inspirations.length;
   return count;
 }
