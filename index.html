@@ -1023,6 +1023,95 @@ function validateData(data){
   return normalized;
 }
 function cloneData(data){return JSON.parse(JSON.stringify(data))}
+
+// === MERGE START ===
+// 三路合并：base=上次同步的共同祖先, server=服务端最新, local=本地当前。
+// 用于云同步拉取/推送时合并两端改动，避免整文件/整模块覆盖导致数据丢失。
+function deepEq(a,b){try{return JSON.stringify(a)===JSON.stringify(b)}catch(e){return false}}
+function _idOf(x,idKey){return x&&x[idKey]!=null?x[idKey]:(x&&x.id!=null?x.id:undefined)}
+function mergeContainers(base,server,local,opts){
+  opts=opts||{};const idKey=opts.idKey||'id';
+  base=Array.isArray(base)?base:[];server=Array.isArray(server)?server:[];local=Array.isArray(local)?local:[];
+  const bm=new Map(),sm=new Map(),lm=new Map();
+  base.forEach(x=>{const k=_idOf(x,idKey);if(k!=null)bm.set(k,x)});
+  server.forEach(x=>{const k=_idOf(x,idKey);if(k!=null)sm.set(k,x)});
+  local.forEach(x=>{const k=_idOf(x,idKey);if(k!=null)lm.set(k,x)});
+  const ids=new Set([...bm.keys(),...sm.keys(),...lm.keys()]);
+  const localOrder=local.map(x=>_idOf(x,idKey)).filter(k=>k!=null);
+  const ordered=localOrder.slice();
+  ids.forEach(k=>{if(!localOrder.includes(k))ordered.push(k)});
+  const out=[];
+  ordered.forEach(k=>{const r=mergeItem(bm.get(k),sm.get(k),lm.get(k));if(r!==null)out.push(r)});
+  return out;
+}
+function mergeItem(b,s,l){
+  const bHas=!!b,sHas=!!s,lHas=!!l;
+  if(!bHas&&!sHas&&!lHas)return null;
+  if(lHas&&!sHas&&!bHas)return cloneData(l);            // 仅本地新增
+  if(sHas&&!lHas&&!bHas)return cloneData(s);            // 仅服务端新增
+  if(bHas&&!lHas&&!sHas)return null;                    // 两端均删除
+  if(bHas&&!lHas&&sHas){                                // 本地删除，服务端可能改过
+    if(deepEq(s,b))return null;                         // 服务端未改 -> 删除生效
+    return cloneData(s);                                // 服务端改过 -> 保留(避免丢数据)
+  }
+  if(bHas&&lHas&&!sHas){                                // 服务端删除，本地可能改过
+    if(deepEq(l,b))return null;                         // 本地未改 -> 删除生效
+    return mergeItemChildren(b,s,l);                    // 本地改过 -> 保留本地
+  }
+  const lEq=deepEq(l,b),sEq=deepEq(s,b);
+  if(lEq&&sEq)return cloneData(b);
+  if(!lEq&&sEq)return mergeItemChildren(b,s,l);         // 仅本地改
+  if(lEq&&!sEq)return cloneData(s);                     // 仅服务端改
+  return mergeItemChildren(b,s,l);                      // 双方都改 -> 冲突：本地优先但递归合并子项
+}
+function mergeItemChildren(b,s,l){
+  const item=cloneData(l);
+  const CHILD_KEYS=['children','tasks','goals','blocks'];
+  CHILD_KEYS.forEach(k=>{
+    if(Array.isArray(item[k])||Array.isArray(b&&b[k])||Array.isArray(s&&s[k]))item[k]=mergeContainers(b?b[k]:[],s?s[k]:[],item[k]||[]);
+  });
+  return item;
+}
+function mergeModule(base,server,local,key){
+  switch(key){
+    case 'weekly':
+    case 'inspirations':
+      return mergeContainers(base||[],server||[],local||[],{idKey:key==='weekly'?'weekKey':'id'});
+    case 'monthly':
+      return {boards:mergeContainers(base&&base.boards,server&&server.boards,local&&local.boards,{idKey:'id'})};
+    case 'cases':
+      return {
+        categories:mergeContainers(base&&base.categories,server&&server.categories,local&&local.categories,{idKey:'id'}),
+        cases:mergeContainers(base&&base.cases,server&&server.cases,local&&local.cases,{idKey:'id'})
+      };
+    case 'strategy':{
+      const keys=['blocks','goals','fixedActions','topics'];
+      const out={};
+      keys.forEach(k=>{out[k]=mergeContainers(base&&base[k],server&&server[k],local&&local[k],{idKey:'id'})});
+      Object.keys(local||{}).forEach(k=>{if(!keys.includes(k)&&!(k in out))out[k]=local[k]});
+      return out;
+    }
+    default:
+      return local||server||base||{};
+  }
+}
+function mergeSettings(base,server,local){
+  base=isPlainObject(base)?base:{};server=isPlainObject(server)?server:{};local=isPlainObject(local)?local:{};
+  return Object.assign({},server,base,local); // 本地改动优先，其次基线，其次服务端
+}
+function mergeData(base,server,local){
+  base=isPlainObject(base)?base:{};server=isPlainObject(server)?server:{};local=isPlainObject(local)?local:{};
+  return {
+    monthly:mergeModule(base.monthly,server.monthly,local.monthly,'monthly'),
+    weekly:mergeModule(base.weekly,server.weekly,local.weekly,'weekly'),
+    cases:mergeModule(base.cases,server.cases,local.cases,'cases'),
+    strategy:mergeModule(base.strategy,server.strategy,local.strategy,'strategy'),
+    inspirations:mergeModule(base.inspirations,server.inspirations,local.inspirations,'inspirations'),
+    settings:mergeSettings(base.settings,server.settings,local.settings)
+  };
+}
+// === MERGE END ===
+
 const Store={
   get(key,def){
     try{
@@ -1091,6 +1180,7 @@ const SYNC_KEY_CONFIG=PREFIX+'sync_config';
 const SYNC_KEY_META=PREFIX+'sync_meta';
 const SYNC_KEY_SECRET=PREFIX+'sync_secret';
 const SYNC_KEY_DEVICE=PREFIX+'device_id';
+const SYNC_KEY_BASELINE=PREFIX+'sync_baseline';
 const SYNC_DEBOUNCE=900;
 const SYNC_POLL_INTERVAL=12000;
 const SYNC_API='https://api.github.com';
@@ -1107,6 +1197,7 @@ const SYNC_LABELS={local:'仅本地',connecting:'连接中',online:'已同步',s
 const CloudSync={
   cryptoKey:null,pollTimer:null,
   isPushing:false,applyingRemote:false,pendingVersion:0,localVersion:0,pushTimer:null,statusTimer:null,
+  _baseline:null,baseVersion:0,
   status:'local',
   config:{owner:'',repo:'',token:'',branch:'main',roomId:'',enabled:false},
   meta:{version:0,sha:null,salt:null},
@@ -1118,9 +1209,12 @@ const CloudSync={
     try{this.meta=Object.assign(mdef,JSON.parse(localStorage.getItem(SYNC_KEY_META)||'null')||{})}catch(e){this.meta=mdef}
     this.deviceId=localStorage.getItem(SYNC_KEY_DEVICE);
     if(!this.deviceId){this.deviceId=uid();localStorage.setItem(SYNC_KEY_DEVICE,this.deviceId)}
+    try{const b=JSON.parse(localStorage.getItem(SYNC_KEY_BASELINE)||'null');if(b&&isPlainObject(b.data)){this._baseline=b.data;this.baseVersion=typeof b.version==='number'?b.version:0;}else{this._baseline=null;this.baseVersion=0}}catch(e){this._baseline=null;this.baseVersion=0}
   },
   saveConfig(){localStorage.setItem(SYNC_KEY_CONFIG,JSON.stringify(this.config))},
   saveMeta(){localStorage.setItem(SYNC_KEY_META,JSON.stringify(this.meta))},
+  saveBaseline(){try{localStorage.setItem(SYNC_KEY_BASELINE,JSON.stringify({version:this.baseVersion,data:this._baseline}))}catch(e){}},
+  setBaseline(data,version){this._baseline=data;this.baseVersion=typeof version==='number'?version:this.baseVersion;this.saveBaseline();},
   hasSecret(){return !!localStorage.getItem(SYNC_KEY_SECRET)},
   setSecret(v){if(v)localStorage.setItem(SYNC_KEY_SECRET,v);else localStorage.removeItem(SYNC_KEY_SECRET)},
   ensureSalt(){if(!this.meta.salt){this.meta.salt=b64(crypto.getRandomValues(new Uint8Array(16)));this.saveMeta()}},
@@ -1188,8 +1282,13 @@ const CloudSync={
   },
   applyRemote(data){
     this.applyingRemote=true;
-    try{Store.commitImport(normalizeData(data));}
-    finally{this.applyingRemote=false}
+    try{
+      const localData=Store.currentData();
+      const base=this._baseline||{};
+      const merged=mergeData(base,data,localData);
+      Store.commitImport(merged);
+      this.setBaseline(merged,Math.max(this.baseVersion,this.localVersion));
+    }finally{this.applyingRemote=false}
     loadState();renderAll();
   },
   push(immediate){
@@ -1201,13 +1300,30 @@ const CloudSync={
     if(!this.cryptoKey)return;
     this.isPushing=true;this.setStatus('syncing');
     try{
-      // 以服务端当前版本为基准递增，避免多端/多来源(deviceId 不同，如本地 file:// 与线上 https://)并发编辑时产生相同版本号，导致某一端的改动(如子任务拖拽排序)被另一端覆盖后"看似没变"。
-      let serverVersion=this.localVersion;
-      try{const g=await fetch(this.apiUrl(),{headers:this.headers()});if(g.ok){const gd=await g.json();if(gd.sha){this.meta.sha=gd.sha;this.saveMeta()}const pc=JSON.parse(atob((gd.content||'').replace(/\n/g,'')));if(pc&&typeof pc.version==='number')serverVersion=pc.version;}}catch(e){}
+      // 拉取服务端当前文件：取版本号并解密数据，用于与本地做三路合并，避免整文件/整模块覆盖导致数据丢失
+      let serverVersion=this.localVersion, serverData=null;
+      try{
+        const g=await fetch(this.apiUrl(),{headers:this.headers()});
+        if(g.ok){
+          const gd=await g.json();
+          if(gd.sha){this.meta.sha=gd.sha;this.saveMeta()}
+          const pc=JSON.parse(atob((gd.content||'').replace(/\n/g,'')));
+          if(pc&&typeof pc.version==='number')serverVersion=pc.version;
+          try{
+            if(pc.salt&&pc.salt!==this.meta.salt){this.meta.salt=pc.salt;this.saveMeta();this.cryptoKey=await deriveSyncKey(localStorage.getItem(SYNC_KEY_SECRET),this.meta.salt)}
+            const sd=await syncDecrypt(this.cryptoKey,pc.iv,pc.ct);
+            serverData=validateData(JSON.parse(sd));
+          }catch(e){serverData=null}
+        }
+      }catch(e){}
       this.localVersion=Math.max(this.localVersion,serverVersion);
+      // 若服务端有比基线更新的数据则合并后再推送；否则直接推送本地。版本号仍以服务端为基准单调递增
+      const localData=Store.currentData();
+      const base=this._baseline||{};
+      let payloadData=(serverData&&serverVersion>this.baseVersion)?mergeData(base,serverData,localData):localData;
       this.pendingVersion=this.localVersion+1;
       this.ensureSalt();
-      let enc=await syncEncrypt(this.cryptoKey,JSON.stringify(Store.currentData()));
+      let enc=await syncEncrypt(this.cryptoKey,JSON.stringify(payloadData));
       let payload={salt:this.meta.salt,iv:enc.iv,ct:enc.ct,version:this.pendingVersion,updatedAtTs:Date.now(),updatedAtBy:this.deviceId};
       let contentB64=btoa(JSON.stringify(payload));
       let sha=this.meta.sha;
@@ -1216,11 +1332,22 @@ const CloudSync={
       if(sha)body.sha=sha;
       let r=await fetch(this.apiUrl(),{method:'PUT',headers:this.headers(),body:JSON.stringify(body)});
       if(r.status===409||r.status===422){
-        // sha 过期：拉最新应用，再用新 sha + 新 version 重推
+        // sha 过期：拉最新、与本地合并、用新 sha + 新 version 重推
         const g=await fetch(this.apiUrl(),{headers:this.headers()});
-        if(g.ok){const gd=await g.json();this.meta.sha=gd.sha;this.saveMeta();const pc=JSON.parse(atob((gd.content||'').replace(/\n/g,'')));if(pc.version>this.localVersion){this.localVersion=pc.version;if(pc.salt&&pc.salt!==this.meta.salt){this.meta.salt=pc.salt;this.saveMeta();this.cryptoKey=await deriveSyncKey(localStorage.getItem(SYNC_KEY_SECRET),this.meta.salt)}try{await this.applyPayload(pc)}catch(e){}}}
+        if(g.ok){
+          const gd=await g.json();this.meta.sha=gd.sha;this.saveMeta();
+          const pc=JSON.parse(atob((gd.content||'').replace(/\n/g,'')));
+          if(pc.version>this.localVersion){this.localVersion=pc.version;}
+          try{
+            if(pc.salt&&pc.salt!==this.meta.salt){this.meta.salt=pc.salt;this.saveMeta();this.cryptoKey=await deriveSyncKey(localStorage.getItem(SYNC_KEY_SECRET),this.meta.salt)}
+            const sv=validateData(JSON.parse(await syncDecrypt(this.cryptoKey,pc.iv,pc.ct)));
+            payloadData=mergeData(this._baseline||{},sv,Store.currentData());
+            Store.commitImport(payloadData);loadState();renderAll();
+            this.setBaseline(payloadData,this.localVersion);
+          }catch(e){}
+        }
         this.pendingVersion=this.localVersion+1;
-        enc=await syncEncrypt(this.cryptoKey,JSON.stringify(Store.currentData()));
+        enc=await syncEncrypt(this.cryptoKey,JSON.stringify(payloadData));
         payload={salt:this.meta.salt,iv:enc.iv,ct:enc.ct,version:this.pendingVersion,updatedAtTs:Date.now(),updatedAtBy:this.deviceId};
         body.content=btoa(JSON.stringify(payload));body.sha=this.meta.sha;body.message='plan-sync v'+this.pendingVersion;
         r=await fetch(this.apiUrl(),{method:'PUT',headers:this.headers(),body:JSON.stringify(body)});
@@ -1229,6 +1356,7 @@ const CloudSync={
       const rd=await r.json();
       if(rd.content&&rd.content.sha){this.meta.sha=rd.content.sha;this.saveMeta()}
       this.localVersion=this.pendingVersion;this.saveMeta();
+      this.setBaseline(payloadData,this.pendingVersion);
       this.setStatus('synced');
     }catch(e){console.error('push error',e);this.isPushing=false;this.setStatus('error');showToast('同步上传失败：'+(e.message||e),'error')}
   },
