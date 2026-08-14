@@ -1199,8 +1199,13 @@ const CloudSync={
   },
   async _doPush(){
     if(!this.cryptoKey)return;
-    this.isPushing=true;this.pendingVersion=this.localVersion+1;this.setStatus('syncing');
+    this.isPushing=true;this.setStatus('syncing');
     try{
+      // 以服务端当前版本为基准递增，避免多端/多来源(deviceId 不同，如本地 file:// 与线上 https://)并发编辑时产生相同版本号，导致某一端的改动(如子任务拖拽排序)被另一端覆盖后"看似没变"。
+      let serverVersion=this.localVersion;
+      try{const g=await fetch(this.apiUrl(),{headers:this.headers()});if(g.ok){const gd=await g.json();if(gd.sha){this.meta.sha=gd.sha;this.saveMeta()}const pc=JSON.parse(atob((gd.content||'').replace(/\n/g,'')));if(pc&&typeof pc.version==='number')serverVersion=pc.version;}}catch(e){}
+      this.localVersion=Math.max(this.localVersion,serverVersion);
+      this.pendingVersion=this.localVersion+1;
       this.ensureSalt();
       let enc=await syncEncrypt(this.cryptoKey,JSON.stringify(Store.currentData()));
       let payload={salt:this.meta.salt,iv:enc.iv,ct:enc.ct,version:this.pendingVersion,updatedAtTs:Date.now(),updatedAtBy:this.deviceId};
