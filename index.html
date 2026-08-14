@@ -1309,11 +1309,23 @@ const CloudSync={
           if(gd.sha){this.meta.sha=gd.sha;this.saveMeta()}
           const pc=JSON.parse(atob((gd.content||'').replace(/\n/g,'')));
           if(pc&&typeof pc.version==='number')serverVersion=pc.version;
-          try{
-            if(pc.salt&&pc.salt!==this.meta.salt){this.meta.salt=pc.salt;this.saveMeta();this.cryptoKey=await deriveSyncKey(localStorage.getItem(SYNC_KEY_SECRET),this.meta.salt)}
-            const sd=await syncDecrypt(this.cryptoKey,pc.iv,pc.ct);
-            serverData=validateData(JSON.parse(sd));
-          }catch(e){serverData=null}
+          // v5 安全机制：服务端已存在加密文件但解密失败→同步密码不匹配/数据损坏，
+          // 严禁用本地数据覆盖云端，直接中止上传；只在解密成功后才采纳服务端的 salt，
+          // 避免错误密码污染本地派生密钥
+          if(pc&&pc.iv&&pc.ct){
+            const keyForDecrypt=(pc.salt&&pc.salt!==this.meta.salt)
+              ? await deriveSyncKey(localStorage.getItem(SYNC_KEY_SECRET),pc.salt)
+              : this.cryptoKey;
+            try{
+              const sd=await syncDecrypt(keyForDecrypt,pc.iv,pc.ct);
+              serverData=validateData(JSON.parse(sd));
+              if(pc.salt&&pc.salt!==this.meta.salt){this.meta.salt=pc.salt;this.saveMeta();this.cryptoKey=await deriveSyncKey(localStorage.getItem(SYNC_KEY_SECRET),this.meta.salt)}
+            }catch(e){
+              this.isPushing=false;this.setStatus('error');
+              showToast('同步密码不正确或服务端数据损坏，已中止上传以保护云端数据，请核对同步密码后重试','error');
+              return;
+            }
+          }
         }
       }catch(e){}
       this.localVersion=Math.max(this.localVersion,serverVersion);
@@ -1344,7 +1356,11 @@ const CloudSync={
             payloadData=mergeData(this._baseline||{},sv,Store.currentData());
             Store.commitImport(payloadData);loadState();renderAll();
             this.setBaseline(payloadData,this.localVersion);
-          }catch(e){}
+          }catch(e){
+            this.isPushing=false;this.setStatus('error');
+            showToast('同步密码不正确或服务端数据损坏，已中止上传以保护云端数据，请核对同步密码后重试','error');
+            return;
+          }
         }
         this.pendingVersion=this.localVersion+1;
         enc=await syncEncrypt(this.cryptoKey,JSON.stringify(payloadData));
