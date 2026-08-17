@@ -51,7 +51,10 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .nav-item svg{width:18px;height:18px;flex-shrink:0}
 .sidebar-footer{padding:16px 24px;border-top:1px solid var(--border)}
 .legend{display:flex;flex-direction:column;gap:6px}
-.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-3)}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-3);cursor:pointer;padding:2px 4px;border-radius:var(--r-sm);transition:var(--t)}
+.legend-item:hover{background:var(--bg-2)}
+.legend-item-editable:hover .legend-edit-hint{opacity:1}
+.legend-edit-hint{margin-left:auto;font-size:11px;color:var(--text-4);opacity:0;transition:var(--t)}
 .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 
 /* ========== Topbar ========== */
@@ -910,7 +913,7 @@ function openAddTypeModal(){
     ]
   });
 }
-function deleteCustomTaskType(key){
+function deleteCustomTaskType(key,reopenManager=true){
   if(!state.settings.customTaskTypes)return;
   let used=false;
   state.weekly.forEach(w=>treeWalk(w.tasks,t=>{if(t.type===key)used=true;}));
@@ -918,8 +921,71 @@ function deleteCustomTaskType(key){
   state.settings.customTaskTypes=state.settings.customTaskTypes.filter(c=>c.key!==key);
   saveSettings();
   renderAll();
-  openAddTypeModal();
+  if(reopenManager)openAddTypeModal();
   showToast('已删除自定义类型','success');
+}
+
+function updateCustomType(key,label,color){
+  label=(label||'').trim();
+  color=(color||'').trim();
+  if(!label)return '请填写类型名称';
+  const list=state.settings.customTaskTypes||[];
+  const idx=list.findIndex(c=>c.key===key);
+  if(idx<0)return '未找到该自定义类型';
+  const lower=label.toLowerCase();
+  let dupName=false;
+  Object.keys(TASK_TYPES).forEach(k=>{if(TASK_TYPES[k].label.toLowerCase()===lower)dupName=true;});
+  if(!dupName&&list.some((c,i)=>i!==idx&&c.label.toLowerCase()===lower))dupName=true;
+  if(dupName)return '类型名称与已有类型重复';
+  const cs=color.toLowerCase();
+  let dupColor=false;
+  Object.keys(TASK_TYPES).forEach(k=>{if(TASK_TYPES[k].color.toLowerCase()===cs)dupColor=true;});
+  if(!dupColor&&list.some((c,i)=>i!==idx&&c.color.toLowerCase()===cs))dupColor=true;
+  if(dupColor)return '类型颜色与已有类型重复';
+  list[idx].label=label;
+  list[idx].color=color;
+  saveSettings();
+  return null;
+}
+
+function openTypeEditModal(key){
+  const all=getAllTaskTypes();
+  const info=all[key];
+  if(!info){showToast('类型不存在','error');return;}
+  const isBuiltin=!!TASK_TYPES[key];
+  if(isBuiltin){
+    showModal({
+      title:'内置类型：'+escapeHtml(info.label),
+      body:'<div style="display:flex;align-items:center;gap:10px;padding:8px 0">'+
+        '<span class="legend-dot" style="width:14px;height:14px;background:'+info.color+'"></span>'+
+        '<span style="font-size:14px">'+escapeHtml(info.label)+'</span>'+
+      '</div>'+
+      '<p class="ct-hint">内置类型（工作/学习/运动/个人IP）不可修改名称、颜色或删除，以保证系统一致性。</p>',
+      actions:[{text:'关闭',class:'btn-ghost',action:hideModal}]
+    });
+    return;
+  }
+  showModal({
+    title:'编辑任务类型',
+    body:'<div style="display:flex;flex-direction:column;gap:14px">'+
+      '<div class="sync-config-row"><label>类型名称</label><input type="text" id="et-name" value="'+escapeHtml(info.label)+'" placeholder="最多8字，不可与已有重复" maxlength="8"></div>'+
+      '<div class="sync-config-row"><label>类型颜色</label><input type="color" id="et-color" value="'+info.color+'"></div>'+
+      '<p class="ct-hint">修改后所有使用该类型的任务会自动应用新名称/颜色。</p>'+
+    '</div>',
+    actions:[
+      {text:'取消',class:'btn-ghost',action:hideModal},
+      {text:'删除',class:'btn-danger',action:()=>{hideModal();deleteCustomTaskType(key,false);}},
+      {text:'保存',class:'btn-primary',action:()=>{
+        const nameEl=document.getElementById('et-name');
+        const colorEl=document.getElementById('et-color');
+        const err=updateCustomType(key,nameEl?nameEl.value.trim():'',colorEl?colorEl.value.trim():'#000000');
+        if(err){showToast(err,'error');return;}
+        renderAll();
+        hideModal();
+        showToast('已保存修改','success');
+      }}
+    ]
+  });
 }
 
 function openSettings(){
@@ -1714,6 +1780,7 @@ function renderAll(){
   renderCases();
   renderStrategy();
   renderHistory();
+  renderLegend();
 }
 
 /* ========== Nav & Tabs ========== */
@@ -1750,9 +1817,15 @@ function renderTopbar(){
 }
 
 function renderLegend(){
-  const html=Object.entries(getAllTaskTypes()).map(([k,v])=>
-    '<div class="legend-item"><span class="legend-dot" style="background:'+v.color+'"></span>'+v.label+'</div>'
-  ).join('');
+  const html=Object.entries(getAllTaskTypes()).map(([k,v])=>{
+    const isBuiltin=!!TASK_TYPES[k];
+    const title=isBuiltin?'内置类型（不可修改/删除）':'点击编辑/删除任务类型';
+    return '<div class="legend-item'+(isBuiltin?'':' legend-item-editable')+'" data-type-key="'+k+'" onclick="openTypeEditModal(\''+k+'\')" title="'+title+'">'+
+      '<span class="legend-dot" style="background:'+v.color+'"></span>'+
+      '<span>'+escapeHtml(v.label)+'</span>'+
+      (isBuiltin?'':'<span class="legend-edit-hint">编辑</span>')+
+    '</div>';
+  }).join('');
   document.getElementById('legend').innerHTML=html;
   const dl=document.getElementById('desktop-legend');
   if(dl)dl.innerHTML=html;
