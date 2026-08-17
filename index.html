@@ -175,16 +175,12 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .type-add-btn:hover{border-color:var(--accent);color:var(--accent)}
 .task-add-time{width:60px;font-size:11px;padding:3px 6px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-2)}
 .day-empty{text-align:center;padding:16px;font-size:12px;color:var(--text-4)}
-.ct-editor{display:flex;flex-direction:column;gap:8px}
 .ct-item{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-sm)}
 .ct-swatch{width:14px;height:14px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,.1)}
 .ct-label{font-size:13px;flex:1;color:var(--text-2)}
 .ct-del{width:24px;height:24px;border-radius:var(--r-sm);background:transparent;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-3);transition:var(--t)}
 .ct-del:hover{background:var(--danger-l);color:#fff}
 .ct-del svg{width:14px;height:14px}
-.ct-add-row{display:flex;align-items:center;gap:6px;margin-top:2px}
-.ct-name{flex:1;font-size:13px;padding:6px 10px;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-2)}
-.ct-color{width:34px;height:32px;padding:2px;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer;flex-shrink:0}
 .ct-hint{font-size:11px;color:var(--text-4);line-height:1.5;margin:2px 0 0}
 .insp-list{display:flex;flex-direction:column;gap:6px}
 .insp-item{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;background:var(--bg-2);border-radius:var(--r-sm);border-left:3px solid var(--accent);transition:var(--t)}
@@ -688,7 +684,6 @@ const ICONS={
   settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
   lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>',
   star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
-  tag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
   grip:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>'
 };
 const NAV_ITEMS=[
@@ -851,33 +846,6 @@ function handlePinComplete(){
 }
 
 /* ========== 自定义任务类型（在四种内置类型之外由用户自选增加） ========== */
-function customTypesEditorHtml(){
-  const custom=(state.settings.customTaskTypes||[]);
-  let html='<div class="ct-editor">';
-  if(custom.length===0){
-    html+='<div style="font-size:12px;color:var(--text-3);padding:6px 0">暂无自定义类型</div>';
-  }else{
-    custom.forEach(c=>{
-      html+='<div class="ct-item">'+
-        '<span class="ct-swatch" style="background:'+c.color+'"></span>'+
-        '<span class="ct-label">'+escapeHtml(c.label)+'</span>'+
-        '<button type="button" class="ct-del" onclick="deleteCustomTaskType(\''+c.key+'\')" aria-label="删除自定义类型 '+escapeHtml(c.label)+'">'+ICONS.trash+'</button>'+
-      '</div>';
-    });
-  }
-  html+='<div class="ct-add-row">'+
-    '<input type="text" id="ct-name" class="ct-name" placeholder="类型名称（最多8字）" maxlength="8">'+
-    '<input type="color" id="ct-color" class="ct-color" value="#3b82f6" aria-label="类型颜色">'+
-    '<button type="button" class="btn btn-primary btn-sm" onclick="addCustomTaskType()">添加</button>'+
-  '</div>'+
-  '<p class="ct-hint">自定义类型会随云端同步、多端一致。名称与颜色不可与内置四种（工作 / 学习 / 运动 / 个人IP）或彼此重复。被任务使用的类型不可删除。</p>'+
-  '</div>';
-  return html;
-}
-function renderCustomTypesEditor(){
-  const el=document.getElementById('ct-editor-mount');
-  if(el)el.innerHTML=customTypesEditorHtml();
-}
 function validateAndAddCustomType(label,color){
   if(!label)return '请填写类型名称';
   if(!state.settings.customTaskTypes)state.settings.customTaskTypes=[];
@@ -899,37 +867,45 @@ function validateAndAddCustomType(label,color){
   saveSettings();
   return null;
 }
-function addCustomTaskType(){
-  const nameInput=document.getElementById('ct-name');
-  const colorInput=document.getElementById('ct-color');
-  if(!nameInput||!colorInput)return;
-  const label=nameInput.value.trim();
-  const err=validateAndAddCustomType(label,colorInput.value.trim());
-  if(err){showToast(err,'error');return;}
-  nameInput.value='';
-  renderCustomTypesEditor();
-  showToast('已添加自定义类型「'+label+'」','success');
-}
 function openAddTypeModal(){
+  const custom=(state.settings.customTaskTypes||[]);
+  let listHtml='';
+  if(custom.length===0){
+    listHtml='<p class="ct-hint" style="margin-top:2px">尚未添加自定义类型。</p>';
+  }else{
+    listHtml='<div class="ct-list" style="display:flex;flex-direction:column;gap:8px;margin-top:2px">'+
+      custom.map(c=>
+        '<div class="ct-item">'+
+          '<span class="ct-swatch" style="background:'+c.color+'"></span>'+
+          '<span class="ct-label">'+escapeHtml(c.label)+'</span>'+
+          '<button type="button" class="ct-del" onclick="deleteCustomTaskType(\''+c.key+'\')" aria-label="删除类型 '+escapeHtml(c.label)+'">'+ICONS.trash+'</button>'+
+        '</div>'
+      ).join('')+
+    '</div>';
+  }
   showModal({
-    title:'新增任务类型',
-    body:'<div style="display:flex;flex-direction:column;gap:12px">'+
+    title:'自定义任务类型',
+    body:'<div style="display:flex;flex-direction:column;gap:14px">'+
+      '<div style="font-size:13px;color:var(--text-3)">新增自定义类型（名称与颜色不可与内置四种或彼此重复）</div>'+
       '<div class="sync-config-row"><label>类型名称</label><input type="text" id="at-name" placeholder="最多8字，不可与已有重复" maxlength="8"></div>'+
       '<div class="sync-config-row"><label>类型颜色</label><input type="color" id="at-color" value="#3b82f6"></div>'+
-      '<p class="ct-hint">名称与颜色不可与内置四种（工作 / 学习 / 运动 / 个人IP）或彼此重复。新增后会在所有周任务的类型下拉中即时出现。</p>'+
+      '<div style="border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:8px">'+
+        '<div style="font-size:13px;font-weight:500">已添加的类型</div>'+
+        listHtml+
+      '</div>'+
+      '<p class="ct-hint">自定义类型会随云端同步、多端一致。被任务使用的类型不可删除（请先改掉相关任务的类型）。</p>'+
     '</div>',
     actions:[
-      {text:'取消',class:'btn-ghost',action:hideModal},
-      {text:'保存',class:'btn-primary',action:()=>{
+      {text:'关闭',class:'btn-ghost',action:hideModal},
+      {text:'添加',class:'btn-primary',action:()=>{
         const nameEl=document.getElementById('at-name');
         const colorEl=document.getElementById('at-color');
         const label=nameEl?nameEl.value.trim():'';
         const err=validateAndAddCustomType(label,colorEl?colorEl.value.trim():'#000000');
         if(err){showToast(err,'error');return;}
-        hideModal();
-        if(document.getElementById('ct-editor-mount'))renderCustomTypesEditor();
         renderAll();
         showToast('已添加自定义类型「'+label+'」','success');
+        openAddTypeModal(); // 重新打开弹窗以刷新已添加列表
       }}
     ]
   });
@@ -941,7 +917,8 @@ function deleteCustomTaskType(key){
   if(used){showToast('该类型已被任务使用，无法删除（请先改掉相关任务的类型）','error');return;}
   state.settings.customTaskTypes=state.settings.customTaskTypes.filter(c=>c.key!==key);
   saveSettings();
-  renderCustomTypesEditor();
+  renderAll();
+  openAddTypeModal();
   showToast('已删除自定义类型','success');
 }
 
@@ -962,10 +939,6 @@ function openSettings(){
         '<span style="font-size:12px;color:var(--text-3)">'+(syncOn?'已启用 · '+CloudSync.config.roomId:'未配置')+'</span>'+
       '</div>'+
       '<p style="font-size:12px;color:var(--text-3);line-height:1.6">多端实时同步：PC、手机、平板任一端保存后，其他端自动更新。数据加密后上云，云端不可见明文。</p>'+
-      '<div style="padding:12px 14px;background:var(--bg-2);border-radius:var(--r-sm)">'+
-        '<div style="display:flex;align-items:center;gap:6px;font-size:14px;margin-bottom:8px">'+ICONS.tag+' 自定义任务类型</div>'+
-        '<div id="ct-editor-mount">'+customTypesEditorHtml()+'</div>'+
-      '</div>'+
     '</div>',
     actions:[
       {text:'取消',class:'btn-ghost',action:hideModal},
