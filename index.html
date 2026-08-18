@@ -163,6 +163,17 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .task.dragging{opacity:.4}
 .task.drag-over{border-top:2px solid var(--accent)}
 .task-type-tag{font-size:10px;padding:1px 5px;border-radius:3px;white-space:nowrap;flex-shrink:0;margin-top:2px}
+.task-type-tag-click{cursor:pointer;display:inline-flex;align-items:center;gap:2px;border:1px solid transparent}
+.task-type-tag-click:hover{filter:brightness(.96);border-color:rgba(0,0,0,.15)}
+.task-type-caret{font-size:8px;opacity:.65;line-height:1}
+.type-picker-list{display:flex;flex-direction:column;gap:6px;max-height:62vh;overflow:auto;padding:2px}
+.type-picker-item{display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-size:14px;color:var(--text-2);transition:var(--t)}
+.type-picker-item:hover{background:var(--bg-2)}
+.type-picker-item.active{border-color:var(--primary);background:var(--bg-2)}
+.type-picker-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.12)}
+.type-picker-label{flex:1;text-align:left}
+.type-picker-check{color:var(--primary);display:flex}
+.type-picker-check svg{width:16px;height:16px}
 .task-del{opacity:0;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:4px;color:var(--text-4);transition:var(--t);flex-shrink:0;cursor:pointer}
 .task-del:hover{color:var(--danger);background:rgba(231,111,81,.1)}
 .task-del svg{width:12px;height:12px}
@@ -2323,7 +2334,7 @@ function renderWeekly(){
     const dayAll=[];dayTasks.forEach(task=>treeWalk([task],item=>dayAll.push(item)));
     const dayDone=dayAll.filter(t=>t.done).length;
     const renderTask=(task,parentId)=>{const tdata=resolveTaskType(task.type),hasChildren=treeHasDescendants(task),collapseId=week.weekKey+'--'+task.id;return '<div class="task-tree sort-item" data-id="'+task.id+'" data-week="'+week.weekKey+'" data-sort-id="'+task.id+'" data-sort-parent="'+parentId+'" data-day="'+d+'"><div class="task '+(task.done?'done':'')+(task.important?' task-important':'')+'" style="border-left-color:'+tdata.border+';background:'+tdata.bg+'">'+
-      collapseButton('weekly-task',collapseId,'展开或收起下级任务',hasChildren)+'<span class="task-grip sort-grip" tabindex="0" role="button" aria-label="拖动排序；Alt 加方向键排序">'+ICONS.grip+'</span><button type="button" class="task-check '+(task.done?'checked':'')+'" aria-label="切换任务 '+escapeHtml(task.text)+' 完成状态" aria-pressed="'+task.done+'">'+ICONS.check+'</button><div class="task-body"><span class="task-text" contenteditable="true" data-id="'+task.id+'" data-week="'+week.weekKey+'">'+escapeHtml(task.text)+'</span><span class="task-time" contenteditable="true" data-id="'+task.id+'" data-week="'+week.weekKey+'" data-field="time">'+(task.time||'--:--')+'</span></div><button type="button" class="task-star'+(task.important?' active':'')+'" aria-label="'+(task.important?'取消重点':'标记重点')+'" aria-pressed="'+task.important+'" data-id="'+task.id+'" data-week="'+week.weekKey+'">'+ICONS.star+'</button><span class="task-type-tag" style="color:'+tdata.color+';background:'+tdata.color+'1a">'+tdata.label+'</span><button type="button" class="tree-add-child" data-week="'+week.weekKey+'" data-parent="'+task.id+'" aria-label="添加下级任务">'+ICONS.plus+'</button><button type="button" class="task-del" aria-label="删除任务 '+escapeHtml(task.text)+'">'+ICONS.trash+'</button></div>'+collapseRegion('weekly-task',collapseId,'<div class="tree-children">'+task.children.map(child=>renderTask(child,task.id)).join('')+'</div>')+'</div>';};
+      collapseButton('weekly-task',collapseId,'展开或收起下级任务',hasChildren)+'<span class="task-grip sort-grip" tabindex="0" role="button" aria-label="拖动排序；Alt 加方向键排序">'+ICONS.grip+'</span><button type="button" class="task-check '+(task.done?'checked':'')+'" aria-label="切换任务 '+escapeHtml(task.text)+' 完成状态" aria-pressed="'+task.done+'">'+ICONS.check+'</button><div class="task-body"><span class="task-text" contenteditable="true" data-id="'+task.id+'" data-week="'+week.weekKey+'">'+escapeHtml(task.text)+'</span><span class="task-time" contenteditable="true" data-id="'+task.id+'" data-week="'+week.weekKey+'" data-field="time">'+(task.time||'--:--')+'</span></div><button type="button" class="task-star'+(task.important?' active':'')+'" aria-label="'+(task.important?'取消重点':'标记重点')+'" aria-pressed="'+task.important+'" data-id="'+task.id+'" data-week="'+week.weekKey+'">'+ICONS.star+'</button><span class="task-type-tag task-type-tag-click" data-id="'+task.id+'" data-week="'+week.weekKey+'" onclick="openTaskTypePicker(\''+week.weekKey+'\',\''+task.id+'\')" style="color:'+tdata.color+';background:'+tdata.color+'1a" title="点击修改任务类型">'+tdata.label+'<span class="task-type-caret">▾</span></span><button type="button" class="tree-add-child" data-week="'+week.weekKey+'" data-parent="'+task.id+'" aria-label="添加下级任务">'+ICONS.plus+'</button><button type="button" class="task-del" aria-label="删除任务 '+escapeHtml(task.text)+'">'+ICONS.trash+'</button></div>'+collapseRegion('weekly-task',collapseId,'<div class="tree-children">'+task.children.map(child=>renderTask(child,task.id)).join('')+'</div>')+'</div>';};
     
     const dayScope=week.weekKey+'-'+d;
     html+='<div class="day-card'+(isToday?' today-card':'')+'">'+
@@ -2533,6 +2544,35 @@ function toggleTaskImportant(weekKey,taskId){
   if(star){star.classList.toggle('active',task.important);star.setAttribute('aria-pressed',String(task.important));star.setAttribute('aria-label',task.important?'取消重点':'标记重点');}
 }
 
+function openTaskTypePicker(weekKey,taskId){
+  const week=state.weekly.find(w=>weekMatches(w,weekKey));
+  const found=week&&treeFind(week.tasks,taskId);
+  const task=found&&found.node;
+  if(!task)return;
+  const all=getAllTaskTypes();
+  const current=task.type;
+  let list='<div class="type-picker-list">';
+  Object.keys(all).forEach(k=>{
+    const v=all[k];
+    list+='<button type="button" class="type-picker-item'+(k===current?' active':'')+'" data-key="'+k+'" onclick="setTaskType(\''+weekKey+'\',\''+taskId+'\',\''+k+'\')"><span class="type-picker-dot" style="background:'+v.color+'"></span><span class="type-picker-label">'+escapeHtml(v.label)+'</span>'+(k===current?'<span class="type-picker-check">'+ICONS.check+'</span>':'')+'</button>';
+  });
+  list+='</div>';
+  showModal({title:'修改任务类型',body:list,actions:[{text:'取消',class:'btn-ghost',action:hideModal}]});
+}
+
+function setTaskType(weekKey,taskId,key){
+  const week=state.weekly.find(w=>weekMatches(w,weekKey));
+  const found=week&&treeFind(week.tasks,taskId);
+  const task=found&&found.node;
+  if(!task||!getAllTaskTypes()[key])return;
+  task.type=key;
+  saveWeekly();
+  hideModal();
+  renderWeekly();
+  renderToday();
+  showToast('任务类型已改为「'+resolveTaskType(key).label+'」','success');
+}
+
 function changeWeek(delta){
   state.weekOffset+=delta;
   renderWeekly();
@@ -2571,42 +2611,27 @@ function generateNextWeek(){
   doGeneratePlan(targetMonday,weekKey,false);
 }
 
+function parseFixedActionDay(text){
+  const m=String(text||'').match(/周\s*([一二三四五六日天])/);
+  if(m){const map={'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'日':7,'天':7};const d=map[m[1]];if(d)return d;}
+  if(/周末/.test(text))return 6;
+  if(/每天|每日/.test(text))return 0; // 0 = 每天（调用处展开为 7 天）
+  return 1; // 默认周一
+}
+function stripFixedActionPrefix(text){
+  return String(text||'').replace(/^周[一二三四五六日天]*(上午|下午|早上|晚间|晚上|中午|凌晨)?[：:\s]+/,'').trim();
+}
 function doGeneratePlan(targetMonday,weekKey,overwrite){
   const tasks=[];
   
-  // 1. Fixed weekly actions
-  // Monday
-  tasks.push({id:uid(),day:1,text:'跟客户汇报案情',type:'work',done:false,important:false,time:'09:00'});
-  tasks.push({id:uid(),day:1,text:'联系5名旧客户/转介人/同行',type:'work',done:false,important:false,time:'10:00'});
-  tasks.push({id:uid(),day:1,text:'回复潜在客户、安排咨询',type:'work',done:false,important:false,time:'11:00'});
-  tasks.push({id:uid(),day:1,text:'发送有针对性的专业内容',type:'ip',done:false,important:false,time:'11:30'});
-  tasks.push({id:uid(),day:1,text:'固定时间开发业务',type:'work',done:false,important:false,time:'14:00'});
-  tasks.push({id:uid(),day:1,text:'案件一鱼多吃：公众号文章+朋友圈+视频',type:'ip',done:false,important:false,time:'15:00'});
-  tasks.push({id:uid(),day:1,text:'发朋友圈',type:'ip',done:false,important:false,time:''});
-  tasks.push({id:uid(),day:1,text:'学习毛选视频',type:'study',done:false,important:false,time:'20:00'});
-  tasks.push({id:uid(),day:1,text:'1分钟短视频',type:'ip',done:false,important:false,time:'21:00'});
-  // Tuesday
-  tasks.push({id:uid(),day:2,text:'跟老客户互动',type:'work',done:false,important:false,time:'10:00'});
-  tasks.push({id:uid(),day:2,text:'发朋友圈',type:'ip',done:false,important:false,time:''});
-  tasks.push({id:uid(),day:2,text:'学习毛选视频',type:'study',done:false,important:false,time:'20:00'});
-  tasks.push({id:uid(),day:2,text:'1分钟短视频',type:'ip',done:false,important:false,time:'21:00'});
-  // Wed-Fri
-  for(let d=3;d<=5;d++){
-    tasks.push({id:uid(),day:d,text:'发朋友圈',type:'ip',done:false,important:false,time:''});
-    tasks.push({id:uid(),day:d,text:'学习毛选视频',type:'study',done:false,important:false,time:'20:00'});
-    tasks.push({id:uid(),day:d,text:'1分钟短视频',type:'ip',done:false,important:false,time:'21:00'});
-  }
-  // Saturday
-  tasks.push({id:uid(),day:6,text:'发朋友圈',type:'ip',done:false,important:false,time:''});
-  tasks.push({id:uid(),day:6,text:'学习黄执中表达视频',type:'study',done:false,important:false,time:'08:00'});
-  tasks.push({id:uid(),day:6,text:'拍摄业务短视频',type:'ip',done:false,important:false,time:'10:00'});
-  tasks.push({id:uid(),day:6,text:'1分钟短视频',type:'ip',done:false,important:false,time:'21:00'});
-  // Sunday
-  tasks.push({id:uid(),day:7,text:'发朋友圈',type:'ip',done:false,important:false,time:''});
-  tasks.push({id:uid(),day:7,text:'学习黄执中表达视频',type:'study',done:false,important:false,time:'08:00'});
-  tasks.push({id:uid(),day:7,text:'拍摄育娃/生活短视频',type:'ip',done:false,important:false,time:'10:00'});
-  tasks.push({id:uid(),day:7,text:'撰写公众号文章',type:'ip',done:false,important:false,time:'14:00'});
-  tasks.push({id:uid(),day:7,text:'1分钟短视频',type:'ip',done:false,important:false,time:'21:00'});
+  // 1. Fixed weekly actions（取自「每周固定动作」模块，自动解析星期几；默认类型「工作」，生成后可逐条改类型）
+  (state.strategy.fixedActions||[]).forEach(fa=>{
+    if(!fa||!fa.text)return;
+    const baseDay=parseFixedActionDay(fa.text);
+    const txt=stripFixedActionPrefix(fa.text);
+    const mk=d=>({id:uid(),day:d,text:txt,type:'work',done:false,important:!!fa.important,time:'',children:[]});
+    if(baseDay===0){for(let d=1;d<=7;d++)tasks.push(mk(d));}else{tasks.push(mk(baseDay));}
+  });
   
   // 2. Court cases in target week
   state.cases.cases.forEach(c=>{
