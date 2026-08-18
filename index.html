@@ -166,6 +166,21 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .task-type-tag-click{cursor:pointer;display:inline-flex;align-items:center;gap:2px;border:1px solid transparent}
 .task-type-tag-click:hover{filter:brightness(.96);border-color:rgba(0,0,0,.15)}
 .task-type-caret{font-size:8px;opacity:.65;line-height:1}
+.fixed-action-item{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:8px}
+.fixed-action-item .fa-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fixed-action-item .fa-row-main{margin-bottom:6px}
+.fixed-action-item .fa-text{flex:1;min-width:160px;font-size:13px;padding:6px 10px;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-2)}
+.fixed-action-item .fa-enabled{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-3);cursor:pointer;white-space:nowrap}
+.fixed-action-item .fa-del{width:26px;height:26px;border-radius:var(--r-sm);background:transparent;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-3);transition:var(--t)}
+.fixed-action-item .fa-del:hover{background:var(--danger-l);color:#fff}
+.fixed-action-item .fa-del svg{width:14px;height:14px}
+.fixed-action-item .fa-row-meta{gap:6px}
+.fixed-action-item .fa-days{display:flex;flex-wrap:wrap;gap:4px;flex:1;min-width:200px}
+.fixed-action-item .fa-day{font-size:11px;padding:3px 8px;background:var(--bg-1);border:1px solid var(--border);border-radius:20px;color:var(--text-3);cursor:pointer;transition:var(--t)}
+.fixed-action-item .fa-day:hover{border-color:var(--accent)}
+.fixed-action-item .fa-day.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.fixed-action-item .fa-type{font-size:12px;padding:5px 8px;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-2)}
+.fixed-action-item .fa-time{width:70px;font-size:12px;padding:5px 8px;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-2)}
 .type-picker-list{display:flex;flex-direction:column;gap:6px;max-height:62vh;overflow:auto;padding:2px}
 .type-picker-item{display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-size:14px;color:var(--text-2);transition:var(--t)}
 .type-picker-item:hover{background:var(--bg-2)}
@@ -1614,10 +1629,28 @@ function loadState(){
   state.inspirations=data.inspirations;
   state.settings=data.settings;
   if(!Array.isArray(state.settings.customTaskTypes))state.settings.customTaskTypes=[];
+  migrateFixedActions();
+}
+function migrateFixedActions(){
+  const block=state.strategy&&state.strategy.blocks&&state.strategy.blocks.find(b=>b.id==='fixed-actions');
+  if(!block||!Array.isArray(block.children))return;
+  let changed=false;
+  block.children.forEach(fa=>{
+    if(!fa)return;
+    if(!Array.isArray(fa.days)){const d=parseFixedActionDay(fa.text||'');fa.days=(d===0?[0]:[d]);changed=true;}
+    if(typeof fa.type!=='string'||!fa.type)fa.type='work';
+    if(typeof fa.time!=='string')fa.time='';
+    if(typeof fa.enabled!=='boolean')fa.enabled=true;
+    if(typeof fa.important!=='boolean')fa.important=false;
+    if(!Array.isArray(fa.children))fa.children=[];
+    const stripped=stripFixedActionPrefix(fa.text||'');
+    if(stripped!==fa.text){fa.text=stripped;changed=true;}
+  });
+  if(changed)Store.set(KEYS.strategy,state.strategy);
 }
 function saveMonthly(){Store.set(KEYS.monthly,state.monthly)}
 function saveWeekly(){Store.set(KEYS.weekly,state.weekly)}
-function saveCases(){Store.set(KEYS.cases,state.cases)}
+function saveCases(){Store.set(KEYS.cases,state.cases);if(typeof syncWeeklyFromSources==='function'){syncWeeklyFromSources();if(typeof renderWeekly==='function')renderWeekly();}}
 function saveStrategy(){Store.set(KEYS.strategy,state.strategy)}
 function saveInspirations(){Store.set(KEYS.inspirations,state.inspirations)}
 function saveSettings(){Store.set(KEYS.settings,state.settings)}
@@ -1735,13 +1768,19 @@ function generateDemoData(){
         {id:uid(),text:'争取每月至少4-6次有效咨询',done:false},
       ],
       fixedActions:[
-        {id:uid(),text:'周一上午：跟客户汇报案情',done:false},
-        {id:uid(),text:'周一上午：联系5名旧客户/转介人/同行',done:false},
-        {id:uid(),text:'周一上午：回复潜在客户、安排咨询',done:false},
-        {id:uid(),text:'周一上午：发送有针对性的专业内容',done:false},
-        {id:uid(),text:'周一下午：固定时间开发业务',done:false},
-        {id:uid(),text:'案件一鱼多吃：公众号文章+朋友圈观点+视频',done:false},
-        {id:uid(),text:'每周末：1个业务短视频+1个育娃/生活短视频',done:false},
+        {id:uid(),days:[1],time:'09:00',type:'work',enabled:true,important:false,text:'跟客户汇报案情',children:[]},
+        {id:uid(),days:[1],time:'10:00',type:'work',enabled:true,important:false,text:'联系5名旧客户/转介人/同行',children:[]},
+        {id:uid(),days:[1],time:'11:00',type:'work',enabled:true,important:false,text:'回复潜在客户、安排咨询',children:[]},
+        {id:uid(),days:[1],time:'11:30',type:'ip',enabled:true,important:false,text:'发送有针对性的专业内容',children:[]},
+        {id:uid(),days:[1],time:'14:00',type:'work',enabled:true,important:false,text:'固定时间开发业务',children:[]},
+        {id:uid(),days:[1],time:'15:00',type:'ip',enabled:true,important:false,text:'案件一鱼多吃：公众号文章+朋友圈观点+视频',children:[]},
+        {id:uid(),days:[2,3,4,5,6,7],time:'',type:'ip',enabled:true,important:false,text:'发朋友圈',children:[]},
+        {id:uid(),days:[3,4,5],time:'20:00',type:'study',enabled:true,important:false,text:'学习毛选视频',children:[]},
+        {id:uid(),days:[3,4,5,6,7],time:'21:00',type:'ip',enabled:true,important:false,text:'1分钟短视频',children:[]},
+        {id:uid(),days:[6,7],time:'08:00',type:'study',enabled:true,important:false,text:'学习黄执中表达视频',children:[]},
+        {id:uid(),days:[6],time:'10:00',type:'ip',enabled:true,important:false,text:'拍摄业务短视频',children:[]},
+        {id:uid(),days:[7],time:'10:00',type:'ip',enabled:true,important:false,text:'拍摄育娃/生活短视频',children:[]},
+        {id:uid(),days:[7],time:'14:00',type:'ip',enabled:true,important:false,text:'撰写公众号文章',children:[]},
       ],
       topics:[
         {id:uid(),text:'宝妈必看：如何管理好孩子的账户',status:'idea'},
@@ -1774,6 +1813,10 @@ function initApp(){
   }
   
   loadState();
+  const _cm=getMonday(new Date());const _ck=getWeekKey(_cm);
+  let _cw=state.weekly.find(w=>weekMatches(w,_ck));
+  if(!_cw){_cw={weekKey:_ck,weekStart:fmtDate(_cm),tasks:[],dismissedFixed:[]};state.weekly.push(_cw);rolloverToWeek(_cw);}
+  syncWeeklyFromSources();
   applySyncUrlParams();
   CloudSync.init();
   renderNav();
@@ -2308,14 +2351,6 @@ function renderWeekly(){
   
   let html='<div class="section-header"><div><div class="section-title">每周待办清单</div>'+editableModuleSubtitle('weekly','勾选完成 · 按类型颜色编码')+'</div></div>';
   
-  // Sunday alert
-  if(today.getDay()===0&&state.weekOffset<=0){
-    html+='<div class="sunday-alert">'+
-      '<div class="sunday-alert-text"><strong>今天是周日</strong>，建议生成下周计划初稿，结合月度目标与本周完成情况。</div>'+
-      '<button class="btn btn-primary" onclick="generateNextWeek()">生成下周计划</button>'+
-    '</div>';
-  }
-  
   // Week navigation
   html+='<div class="week-nav-bar">'+
     '<button class="week-nav-btn" onclick="changeWeek(-1)">'+ICONS.chevronLeft+'</button>'+
@@ -2505,7 +2540,16 @@ function deleteTask(weekKey,taskId){
   const week=state.weekly.find(w=>weekMatches(w,weekKey));
   if(!week)return;
   const found=treeFind(week.tasks,taskId);if(!found)return;
-  const remove=()=>{treeRemove(week.tasks,taskId);saveWeekly();renderWeekly();renderToday();showToast('已删除','success');};
+  const remove=()=>{
+    const t=found.node;
+    if(t.sourceFixedId){
+      if(!Array.isArray(week.dismissedFixed))week.dismissedFixed=[];
+      const key=t.sourceFixedId+'@'+t.day;
+      if(!week.dismissedFixed.includes(key))week.dismissedFixed.push(key);
+    }
+    treeRemove(week.tasks,taskId);
+    saveWeekly();renderWeekly();renderToday();showToast('已删除','success');
+  };
   if(treeCount(found.node.children)){showModal({title:'确认删除任务',body:'该任务包含 '+treeCount(found.node.children)+' 个下级任务。删除后无法恢复。',actions:[{text:'取消',class:'btn-ghost',action:hideModal},{text:'删除任务',class:'btn-danger',action:()=>{hideModal();remove();}}]});return;}
   remove();return;
 }
@@ -2515,7 +2559,7 @@ function editTaskText(weekKey,taskId,newText){
   if(!week)return;
   const found=treeFind(week.tasks,taskId),task=found&&found.node;
   if(!task)return;
-  task.text=newText;
+  task.text=newText;task.manual=true;
   saveWeekly();
   showToast('已保存','success');
 }
@@ -2525,7 +2569,7 @@ function editTaskTime(weekKey,taskId,newTime){
   if(!week)return;
   const found=treeFind(week.tasks,taskId),task=found&&found.node;
   if(!task)return;
-  task.time=newTime;
+  task.time=newTime;task.manual=true;
   saveWeekly();
   showToast('已保存','success');
 }
@@ -2535,7 +2579,7 @@ function toggleTaskImportant(weekKey,taskId){
   if(!week)return;
   const found=treeFind(week.tasks,taskId),task=found&&found.node;
   if(!task)return;
-  task.important=!task.important;
+  task.important=!task.important;task.manual=true;
   saveWeekly();
   // Re-render without full page flicker
   const el=document.querySelector('#view-weekly .task-tree[data-id="'+taskId+'"] > .task');
@@ -2565,7 +2609,7 @@ function setTaskType(weekKey,taskId,key){
   const found=week&&treeFind(week.tasks,taskId);
   const task=found&&found.node;
   if(!task||!getAllTaskTypes()[key])return;
-  task.type=key;
+  task.type=key;task.manual=true;
   saveWeekly();
   hideModal();
   renderWeekly();
@@ -2574,7 +2618,13 @@ function setTaskType(weekKey,taskId,key){
 }
 
 function changeWeek(delta){
-  state.weekOffset+=delta;
+  const newOffset=state.weekOffset+delta;
+  state.weekOffset=newOffset;
+  if(newOffset>=0){
+    const monday=getMonday(new Date());
+    const targetMonday=addDays(monday,newOffset*7);
+    ensureWeek(getWeekKey(targetMonday),newOffset);
+  }
   renderWeekly();
 }
 
@@ -2583,33 +2633,7 @@ function goToday(){
   renderWeekly();
 }
 
-/* ========== Weekly Plan Generator ========== */
-function generateNextWeek(){
-  const nextOffset=state.weekOffset+1;
-  const baseMonday=getMonday(new Date());
-  const targetMonday=addDays(baseMonday,nextOffset*7);
-  const targetSunday=addDays(targetMonday,6);
-  const weekKey=getWeekKey(targetMonday);
-  
-  // Check if next week already has tasks
-  const existing=state.weekly.find(w=>weekMatches(w,weekKey));
-  if(existing&&existing.tasks.length>0){
-    showModal({
-      title:'下周已有计划',
-      body:'下周（'+fmtDateShort(targetMonday)+' - '+fmtDateShort(targetSunday)+'）已有 '+existing.tasks.length+' 条任务。是否覆盖？',
-      actions:[
-        {text:'取消',class:'btn-ghost',action:hideModal},
-        {text:'覆盖生成',class:'btn-primary',action:()=>{
-          hideModal();
-          doGeneratePlan(targetMonday,weekKey,true);
-        }}
-      ]
-    });
-    return;
-  }
-  
-  doGeneratePlan(targetMonday,weekKey,false);
-}
+/* ========== Weekly Sync（固定动作/案件实时投影到周待办） ========== */
 
 function parseFixedActionDay(text){
   const m=String(text||'').match(/周\s*([一二三四五六日天])/);
@@ -2621,99 +2645,111 @@ function parseFixedActionDay(text){
 function stripFixedActionPrefix(text){
   return String(text||'').replace(/^周[一二三四五六日天]*(上午|下午|早上|晚间|晚上|中午|凌晨)?[：:\s]+/,'').trim();
 }
-function doGeneratePlan(targetMonday,weekKey,overwrite){
-  const tasks=[];
-  
-  // 1. Fixed weekly actions（取自「每周固定动作」模块，自动解析星期几；默认类型「工作」，生成后可逐条改类型）
-  (state.strategy.fixedActions||[]).forEach(fa=>{
-    if(!fa||!fa.text)return;
-    const baseDay=parseFixedActionDay(fa.text);
-    const txt=stripFixedActionPrefix(fa.text);
-    const mk=d=>({id:uid(),day:d,text:txt,type:'work',done:false,important:!!fa.important,time:'',children:[]});
-    if(baseDay===0){for(let d=1;d<=7;d++)tasks.push(mk(d));}else{tasks.push(mk(baseDay));}
+// === SYNC START ===
+function expandDays(days){
+  if(!Array.isArray(days)||!days.length)return [];
+  if(days.includes(0))return [1,2,3,4,5,6,7];
+  return days.filter(d=>d>=1&&d<=7);
+}
+/* 把「每周固定动作」与「案件」实时投影到周待办。
+   范围：当前周及之后所有周（含未来未创建周，由 ensureWeek 按需创建）；过去周不动。
+   规则：模板增→建实例(sourceFixedId/manual=false)；模板改→仅更新未 manual 实例；模板删→删所有实例；
+        周待办里手动改过(manual)的实例保留；删除固定实例→该周 dismiss，模板真删才全局消失。 */
+function syncWeeklyFromSources(){
+  const baseMonday=getMonday(new Date());
+  state.weekly.forEach(week=>{
+    if(!week||!week.weekStart)return;
+    if(localDayNumber(parseLocalDate(week.weekStart))<localDayNumber(baseMonday))return; // 过去周不动
+    syncFixedActionsToWeek(week);
+    syncCourtCasesToWeek(week);
   });
-  
-  // 2. Court cases in target week
-  state.cases.cases.forEach(c=>{
-    if(c.done||c.category!=='court')return;
-    const diff=daysUntil(c.date);
-    const weekMondayDiff=localDayNumber(parseLocalDate(c.date))-localDayNumber(targetMonday);
-    if(weekMondayDiff>=0&&weekMondayDiff<7){
-      tasks.push({id:uid(),day:weekMondayDiff+1,text:'开庭：'+c.name,type:'work',done:false,important:false,time:c.time||'09:00'});
+  saveWeekly();
+}
+function syncFixedActionsToWeek(week){
+  const block=state.strategy&&state.strategy.blocks&&state.strategy.blocks.find(b=>b.id==='fixed-actions');
+  const list=block&&Array.isArray(block.children)?block.children:[];
+  const should={};
+  list.forEach(fa=>{
+    if(!fa||fa.enabled===false)return;
+    expandDays(fa.days).forEach(d=>{should[fa.id+'@'+d]=fa;});
+  });
+  // 模板已删除的 faId → 清理 dismissed 中残留
+  if(Array.isArray(week.dismissedFixed)){
+    const validFaIds=new Set(list.map(f=>f.id));
+    week.dismissedFixed=week.dismissedFixed.filter(k=>validFaIds.has(k.split('@')[0]));
+  }
+  // 删除：fixed 来源、未 manual、模板不再生成
+  const toRemove=[];
+  treeWalk(week.tasks,t=>{if(t.sourceFixedId&&!t.manual&&!should[t.sourceFixedId+'@'+t.day])toRemove.push(t.id);});
+  toRemove.forEach(id=>treeRemove(week.tasks,id));
+  // 新增/更新
+  Object.keys(should).forEach(key=>{
+    const fa=should[key];
+    const at=key.indexOf('@');
+    const faId=key.slice(0,at),day=parseInt(key.slice(at+1),10);
+    if(week.dismissedFixed&&week.dismissedFixed.includes(key))return;
+    const existing=week.tasks.find(t=>t.sourceFixedId===faId&&t.day===day);
+    if(existing){
+      if(!existing.manual){existing.text=fa.text;existing.type=fa.type;existing.time=fa.time||'';existing.important=!!fa.important;}
+      return;
     }
-  });
-  
-  // 3. Rollover incomplete tasks from current week
-  const todayKey=getWeekKey(new Date());
-  const currentWeek=state.weekly.find(w=>weekMatches(w,todayKey));
-  if(currentWeek){
-    const todayDayNum=new Date().getDay()||7;
-    const rolledOver=[];
-    currentWeek.tasks.forEach(t=>{
-      if(!t.done&&t.day<todayDayNum){
-        // Avoid duplicates
-        if(!rolledOver.includes(t.text)){
-          rolledOver.push(t.text);
-          tasks.push({id:uid(),day:1,text:'(顺延) '+t.text,type:t.type,done:false,important:false,time:t.time||''});
-        }
-      }
-    });
-  }
-  
-  // 4. Sort by day
-  tasks.sort((a,b)=>a.day-b.day);
-  
-  // Show preview
-  let previewHtml='';
-  for(let d=1;d<=7;d++){
-    const dayTasks=tasks.filter(t=>t.day===d);
-    if(dayTasks.length===0)continue;
-    const dayDate=addDays(targetMonday,d-1);
-    previewHtml+='<div class="modal-preview-day">'+DAY_NAMES[d-1]+' '+fmtDateShort(dayDate)+'</div>';
-    dayTasks.forEach((t,i)=>{
-      const ti=resolveTaskType(t.type);
-      const gidx=tasks.indexOf(t);
-      previewHtml+='<div class="modal-preview-task" style="border-left-color:'+ti.color+'">['+ti.label+'] <span class="mp-task-text" contenteditable="true" data-idx="'+gidx+'">'+escapeHtml(t.text)+'</span> <span class="mp-task-time" contenteditable="true" data-idx="'+gidx+'" data-field="time">'+(t.time||'--:--')+'</span></div>';
-    });
-  }
-  
-  showModal({
-    title:'下周计划初稿',
-    body:'已根据月度目标、固定动作和本周未完成项生成 <strong>'+tasks.length+' 条任务</strong>。请确认后生效，之后可自由调整：',
-    preview:previewHtml,
-    actions:[
-      {text:'取消',class:'btn-ghost',action:hideModal},
-      {text:'确认生成',class:'btn-primary',action:()=>{
-        // Read edited values from DOM
-        const root=document.getElementById('modal-root');
-        root.querySelectorAll('.mp-task-text[contenteditable]').forEach(el=>{
-          const idx=parseInt(el.dataset.idx);
-          const v=el.textContent.trim();
-          if(v&&tasks[idx])tasks[idx].text=v;
-        });
-        root.querySelectorAll('.mp-task-time[contenteditable]').forEach(el=>{
-          const idx=parseInt(el.dataset.idx);
-          const v=el.textContent.trim();
-          if(v&&v!=='--:--'&&tasks[idx])tasks[idx].time=v;
-        });
-        // Save
-        if(overwrite){
-          const idx=state.weekly.findIndex(w=>weekMatches(w,weekKey));
-          if(idx>=0)state.weekly[idx].tasks=tasks;
-          else state.weekly.push({weekKey:weekKey,weekStart:fmtDate(targetMonday),tasks:tasks});
-        }else{
-          state.weekly.push({weekKey:weekKey,weekStart:fmtDate(targetMonday),tasks:tasks});
-        }
-        saveWeekly();
-        hideModal();
-        state.weekOffset=1;
-        renderWeekly();
-        renderToday();
-        showToast('已生成下周计划，共'+tasks.length+'条任务','success');
-      }}
-    ]
+    const reuse=week.tasks.find(t=>!t.sourceFixedId&&!t.sourceCaseId&&!t.sourceRollover&&t.day===day&&t.text===fa.text);
+    if(reuse){reuse.sourceFixedId=faId;reuse.manual=true;return;}
+    week.tasks.push({id:uid(),day:day,text:fa.text,type:fa.type,time:fa.time||'',important:!!fa.important,done:false,children:[],sourceFixedId:faId,manual:false});
   });
 }
+function syncCourtCasesToWeek(week){
+  const monday=parseLocalDate(week.weekStart);
+  if(isNaN(monday.getTime()))return;
+  const flat=[];
+  treeWalk((state.cases&&Array.isArray(state.cases.cases))?state.cases.cases:[],c=>flat.push(c));
+  const should={};
+  flat.forEach(c=>{
+    if(!c||c.done||c.category!=='court'||!isValidLocalDateString(c.date))return;
+    const cd=parseLocalDate(c.date);
+    if(cd>=monday&&cd<=addDays(monday,6)){
+      should[c.id]={c:c,day:localDayNumber(cd)-localDayNumber(monday)+1};
+    }
+  });
+  const toRemove=[];
+  treeWalk(week.tasks,t=>{if(t.sourceCaseId&&!should[t.sourceCaseId])toRemove.push(t.id);});
+  toRemove.forEach(id=>treeRemove(week.tasks,id));
+  Object.keys(should).forEach(cid=>{
+    const o=should[cid],c=o.c,day=o.day;
+    const existing=week.tasks.find(t=>t.sourceCaseId===cid);
+    if(existing){existing.day=day;existing.text='开庭：'+c.name;existing.time=c.time||'09:00';return;}
+    const reuse=week.tasks.find(t=>!t.sourceFixedId&&!t.sourceCaseId&&!t.sourceRollover&&t.day===day&&t.text==='开庭：'+c.name);
+    if(reuse){reuse.sourceCaseId=cid;reuse.manual=true;return;}
+    week.tasks.push({id:uid(),day:day,text:'开庭：'+c.name,type:'work',time:c.time||'09:00',important:false,done:false,children:[],sourceCaseId:cid,manual:false});
+  });
+}
+/* 新建周时调用一次：把上一周未完成、非来源任务顺延过来（标记 sourceRollover，避免被 sync 覆盖/重复顺延） */
+function rolloverToWeek(week){
+  const monday=parseLocalDate(week.weekStart);
+  if(isNaN(monday.getTime()))return;
+  const prevWeek=state.weekly.find(w=>weekMatches(w,getWeekKey(addDays(monday,-7))));
+  if(!prevWeek)return;
+  const seen=new Set();
+  prevWeek.tasks.forEach(t=>{
+    if(t.done)return;
+    if(t.sourceFixedId||t.sourceCaseId||t.sourceRollover)return;
+    if(seen.has(t.text))return;seen.add(t.text);
+    week.tasks.push({id:uid(),day:t.day,text:'(顺延) '+t.text,type:t.type,time:t.time||'',important:t.important,done:false,children:[],sourceRollover:true,manual:true});
+  });
+}
+function ensureWeek(weekKey,offset){
+  let week=state.weekly.find(w=>weekMatches(w,weekKey));
+  if(!week){
+    const monday=getMonday(new Date());
+    const targetMonday=addDays(monday,offset*7);
+    week={weekKey:weekKey,weekStart:fmtDate(targetMonday),tasks:[],dismissedFixed:[]};
+    state.weekly.push(week);
+    rolloverToWeek(week);
+    syncWeeklyFromSources();
+  }
+  return week;
+}
+// === SYNC END ===
 
 /* ========== Cases Module ========== */
 function renderCases(){
@@ -2862,7 +2898,7 @@ function renderStrategy(){
   state.strategy.blocks.forEach(block=>{
     const isTopic=block.kind==='topic';
     const blockCount=treeCount(block.children);
-    const renderChild=(item,parentId)=>{const hasChildren=treeHasDescendants(item),collapseId=block.id+'--'+item.id,status=isTopic?(item.status||'idea'):'';return '<div class="strat-tree sort-item" data-block="'+block.id+'" data-id="'+item.id+'" data-sort-id="'+item.id+'" data-sort-parent="'+parentId+'"><div class="'+(isTopic?'topic-item':'strat-item')+' '+(!isTopic&&item.done?'done':'')+(item.important?' task-important':'')+'">'+
+    const renderChild=(item,parentId)=>{if(block.id==='fixed-actions')return renderFixedActionItem(block,item);const hasChildren=treeHasDescendants(item),collapseId=block.id+'--'+item.id,status=isTopic?(item.status||'idea'):'';return '<div class="strat-tree sort-item" data-block="'+block.id+'" data-id="'+item.id+'" data-sort-id="'+item.id+'" data-sort-parent="'+parentId+'"><div class="'+(isTopic?'topic-item':'strat-item')+' '+(!isTopic&&item.done?'done':'')+(item.important?' task-important':'')+'">'+
       collapseButton('strategy-child',collapseId,'展开或收起下级项目',hasChildren)+'<span class="task-grip sort-grip" tabindex="0" role="button" aria-label="拖动排序；Alt 加方向键排序">'+ICONS.grip+'</span>'+
       (isTopic?'<span class="topic-text" contenteditable="true" data-block="'+block.id+'" data-id="'+item.id+'">'+escapeHtml(item.text)+'</span><button type="button" class="topic-status '+status+'" aria-label="切换选题状态" data-block="'+block.id+'" data-id="'+item.id+'">'+statusLabels[status]+'</button>':'<button type="button" class="goal-check '+(item.done?'checked':'')+'" aria-label="切换完成状态" aria-pressed="'+item.done+'" data-block="'+block.id+'" data-id="'+item.id+'">'+ICONS.check+'</button><span class="strat-text" contenteditable="true" data-block="'+block.id+'" data-id="'+item.id+'">'+escapeHtml(item.text)+'</span>')+
       '<button type="button" class="strategy-star '+(item.important?'active':'')+'" aria-label="'+(item.important?'取消重点':'标记重点')+'" aria-pressed="'+item.important+'" data-block="'+block.id+'" data-id="'+item.id+'">'+ICONS.star+'</button><button type="button" class="tree-add-child" data-block="'+block.id+'" data-parent="'+item.id+'" aria-label="添加下级项目">'+ICONS.plus+'</button><button type="button" class="'+(isTopic?'topic-del':'strat-del')+'" aria-label="删除子项" data-block="'+block.id+'" data-id="'+item.id+'">'+ICONS.trash+'</button></div>'+collapseRegion('strategy-child',collapseId,'<div class="tree-children">'+item.children.map(child=>renderChild(child,item.id)).join('')+'</div>')+'</div>';};
@@ -2885,6 +2921,80 @@ function renderStrategy(){
 }
 
 function getStrategyBlock(id){return state.strategy.blocks.find(block=>block.id===id)}
+function renderFixedActionItem(block,item){
+  const faDays=Array.isArray(item.days)?item.days:[];
+  const dayChips=[0,1,2,3,4,5,6,7].map(n=>{
+    const label=n===0?'每天':DAY_NAMES[n-1];
+    const active=faDays.includes(n);
+    return '<button type="button" class="fa-day'+(active?' active':'')+'" onclick="toggleFixedActionDay(\''+block.id+'\',\''+item.id+'\','+n+')" aria-pressed="'+active+'">'+label+'</button>';
+  }).join('');
+  const enabled=item.enabled!==false;
+  return '<div class="fixed-action-item" data-block="'+block.id+'" data-id="'+item.id+'">'+
+    '<div class="fa-row fa-row-main">'+
+      '<input type="text" class="fa-text" value="'+escapeHtml(item.text||'')+'" placeholder="固定动作内容" onchange="editFixedActionField(\''+block.id+'\',\''+item.id+'\',\'text\',this.value)">'+
+      '<label class="fa-enabled"><input type="checkbox" '+(enabled?'checked':'')+' onchange="editFixedActionField(\''+block.id+'\',\''+item.id+'\',\'enabled\',this.checked)"><span>启用</span></label>'+
+      '<button type="button" class="fa-del" aria-label="删除固定动作" onclick="deleteFixedAction(\''+block.id+'\',\''+item.id+'\')">'+ICONS.trash+'</button>'+
+    '</div>'+
+    '<div class="fa-row fa-row-meta">'+
+      '<div class="fa-days" role="group" aria-label="执行日（可多选，每天表示周一至周日）">'+dayChips+'</div>'+
+      '<select class="fa-type" onchange="editFixedActionField(\''+block.id+'\',\''+item.id+'\',\'type\',this.value)">'+taskTypeOptions(item.type)+'</select>'+
+      '<input type="text" class="fa-time" value="'+escapeHtml(item.time||'')+'" placeholder="时间" onchange="editFixedActionField(\''+block.id+'\',\''+item.id+'\',\'time\',this.value)">'+
+    '</div>'+
+  '</div>';
+}
+function editFixedActionField(blockId,id,field,value){
+  const block=getStrategyBlock(blockId);
+  const found=block&&treeFind(block.children,id);
+  const item=found&&found.node;
+  if(!item)return;
+  if(field==='enabled')item.enabled=!!value;
+  else if(field==='text')item.text=(value||'').trim();
+  else if(field==='time')item.time=(value||'').trim();
+  else if(field==='type')item.type=value;
+  else return;
+  saveStrategy();
+  syncWeeklyFromSources();
+  renderStrategy();
+  renderAll();
+}
+function toggleFixedActionDay(blockId,id,day){
+  const block=getStrategyBlock(blockId);
+  const found=block&&treeFind(block.children,id);
+  const item=found&&found.node;
+  if(!item)return;
+  if(!Array.isArray(item.days))item.days=[];
+  if(day===0){item.days=item.days.includes(0)?[]:[0];}
+  else{
+    let days=item.days.filter(d=>d!==0);
+    const idx=days.indexOf(day);
+    if(idx>=0)days.splice(idx,1);else days.push(day);
+    const allDays=[1,2,3,4,5,6,7].every(d=>days.includes(d));
+    item.days=allDays?[0]:days;
+  }
+  saveStrategy();
+  syncWeeklyFromSources();
+  renderStrategy();
+  renderAll();
+}
+function deleteFixedAction(blockId,id){
+  const block=getStrategyBlock(blockId);
+  if(!block)return;
+  const found=treeFind(block.children,id);
+  if(!found)return;
+  const remove=()=>{
+    treeRemove(block.children,id);
+    syncLegacyStrategyLists();
+    saveStrategy();
+    syncWeeklyFromSources();
+    renderStrategy();renderAll();
+    showToast('已删除固定动作','success');
+  };
+  if(treeCount(found.node.children)){
+    showModal({title:'确认删除固定动作',body:'该固定动作包含 '+treeCount(found.node.children)+' 个下级项目。删除后每周待办中对应的任务也会移除。',actions:[{text:'取消',class:'btn-ghost',action:hideModal},{text:'删除',class:'btn-danger',action:()=>{hideModal();remove();}}]});
+    return;
+  }
+  remove();
+}
 function syncLegacyStrategyLists(){state.strategy.goals=(getStrategyBlock('goals')||{children:[]}).children;state.strategy.fixedActions=(getStrategyBlock('fixed-actions')||{children:[]}).children;state.strategy.topics=(getStrategyBlock('topics')||{children:[]}).children;}
 function addStrategyBlock(){state.strategy.blocks.push({id:uid(),name:'新战略区块',kind:'custom',children:[]});syncLegacyStrategyLists();saveStrategy();renderStrategy();checkBackupReminder();showToast('已新增战略区块','success');}
 function addStrategyChild(blockId,parentId){const block=getStrategyBlock(blockId);let text;if(parentId)text=window.prompt('添加下级项目');else{const input=document.querySelector('.strategy-child-input[data-block="'+blockId+'"]');text=input&&input.value.trim();}if(!block||!text||!text.trim())return;const list=parentId?(treeFind(block.children,parentId)||{}).node?.children:block.children;if(!list)return;list.push(block.kind==='topic'?{id:uid(),text:text.trim(),status:'idea',important:false,children:[]}:{id:uid(),text:text.trim(),done:false,important:false,children:[]});syncLegacyStrategyLists();saveStrategy();renderStrategy();renderToday();checkBackupReminder();}
