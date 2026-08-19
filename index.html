@@ -536,6 +536,19 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .sync-config-hint code{background:var(--bg-3);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--primary)}
 
 /* ========== Responsive ========== */
+@media(max-width:1199px){
+:root{color-scheme:light}
+#view-weekly .task{background:var(--task-color)!important}
+#view-weekly .task .task-text,#view-weekly .task .task-time,#view-weekly .task .task-type-tag,#view-weekly .task .task-type-caret{color:#fff!important}
+#view-weekly .task .task-type-tag{background:rgba(255,255,255,.2)!important}
+#view-weekly .task .task-check{border-color:#fff!important}
+#view-weekly .task .task-check.checked{background:#fff!important}
+#view-weekly .task .task-check.checked svg{color:var(--task-color)!important}
+#view-weekly .task .task-grip,#view-weekly .task .task-star,#view-weekly .task .tree-add-child,#view-weekly .task .task-del{color:#fff!important}
+#view-weekly .task .task-star.active{color:#ffd24a!important}
+#view-weekly .task.done .task-text{color:rgba(255,255,255,.62)!important;text-decoration:line-through}
+#view-weekly .task:hover{background:var(--task-color)}
+}
 @media(max-width:768px){
 #sidebar{display:none}
 #main{margin-left:0;padding-bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 8px)}
@@ -2390,7 +2403,7 @@ function renderWeekly(){
     const dayTasks=week.tasks.filter(t=>t.day===d);
     const dayAll=[];dayTasks.forEach(task=>treeWalk([task],item=>dayAll.push(item)));
     const dayDone=dayAll.filter(t=>t.done).length;
-    const renderTask=(task,parentId,track)=>{const tdata=resolveTaskType(task.type),hasChildren=treeHasDescendants(task),collapseId=week.weekKey+'--'+task.id;return '<div class="task-tree sort-item" data-id="'+task.id+'" data-week="'+week.weekKey+'" data-sort-id="'+task.id+'" data-sort-parent="'+parentId+'" data-day="'+d+'" data-track="'+track+'"><div class="task '+(task.done?'done':'')+(task.important?' task-important':'')+'" style="border-left-color:'+tdata.border+';background:'+tdata.bg+'">'+
+    const renderTask=(task,parentId,track)=>{const tdata=resolveTaskType(task.type),hasChildren=treeHasDescendants(task),collapseId=week.weekKey+'--'+task.id;return '<div class="task-tree sort-item" data-id="'+task.id+'" data-week="'+week.weekKey+'" data-sort-id="'+task.id+'" data-sort-parent="'+parentId+'" data-day="'+d+'" data-track="'+track+'"><div class="task '+(task.done?'done':'')+(task.important?' task-important':'')+'" style="--task-color:'+tdata.border+';border-left-color:var(--task-color);background:'+tdata.bg+'">'+
       collapseButton('weekly-task',collapseId,'展开或收起下级任务',hasChildren)+'<span class="task-grip sort-grip" tabindex="0" role="button" aria-label="拖动排序；Alt 加方向键排序">'+ICONS.grip+'</span><button type="button" class="task-check '+(task.done?'checked':'')+'" aria-label="切换任务 '+escapeHtml(task.text)+' 完成状态" aria-pressed="'+task.done+'">'+ICONS.check+'</button><div class="task-body"><span class="task-text" contenteditable="true" data-id="'+task.id+'" data-week="'+week.weekKey+'">'+escapeHtml(task.text)+'</span><span class="task-time" contenteditable="true" data-id="'+task.id+'" data-week="'+week.weekKey+'" data-field="time">'+(task.time||'--:--')+'</span></div><button type="button" class="task-star'+(task.important?' active':'')+'" aria-label="'+(task.important?'取消重点':'标记重点')+'" aria-pressed="'+task.important+'" data-id="'+task.id+'" data-week="'+week.weekKey+'">'+ICONS.star+'</button><span class="task-type-tag task-type-tag-click" data-id="'+task.id+'" data-week="'+week.weekKey+'" onclick="openTaskTypePicker(\''+week.weekKey+'\',\''+task.id+'\')" style="color:'+tdata.color+';background:'+tdata.color+'1a" title="点击修改任务类型">'+tdata.label+'<span class="task-type-caret">▾</span></span><button type="button" class="tree-add-child" data-week="'+week.weekKey+'" data-parent="'+task.id+'" aria-label="添加下级任务">'+ICONS.plus+'</button><button type="button" class="task-del" aria-label="删除任务 '+escapeHtml(task.text)+'">'+ICONS.trash+'</button></div>'+collapseRegion('weekly-task',collapseId,'<div class="tree-children sort-drop">'+task.children.map(child=>renderTask(child,task.id,(task.track||'planned'))).join('')+'</div>')+'</div>';};
     const renderTrack=(tr,label)=>{
       const list=dayTasks.filter(t=>(t.track||'planned')===tr);
