@@ -129,8 +129,8 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .sunday-alert{background:linear-gradient(135deg,rgba(82,183,136,.08),var(--bg-2));border:1px solid rgba(82,183,136,.25);border-radius:var(--r-md);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .sunday-alert-text{font-size:13px;color:var(--text-2)}
 .sunday-alert-text strong{color:var(--accent)}
-.week-grid{display:flex;gap:16px;align-items:flex-start;overflow-x:auto;padding-bottom:8px}
-.week-grid>.day-card{min-width:520px;width:520px;flex:0 0 520px}
+.week-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(480px,1fr));gap:14px;align-items:start}
+.week-grid>.day-card{min-width:0;width:auto}
 .day-card{background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
 .day-card.today-card{border-color:var(--accent);box-shadow:0 0 0 1px rgba(82,183,136,.15)}
 .day-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);background:var(--bg-2)}
@@ -439,7 +439,7 @@ input:focus,textarea:focus{border-color:var(--accent)}
   .case-add-form{grid-template-columns:2fr 1fr 1fr;gap:6px}
   .case-add-form #case-note{display:none}
   .case-add-form button{grid-column:1/-1;justify-self:start;margin-top:2px}
-  .week-grid{gap:8px}
+  .week-grid{gap:14px}
   .week-nav-bar{flex-wrap:wrap}
   .board-goals{gap:4px}
   .goal-row{padding:6px 8px;gap:6px}
@@ -548,9 +548,11 @@ input:focus,textarea:focus{border-color:var(--accent)}
 .monthly-grid{grid-template-columns:1fr}
 .today-stats{grid-template-columns:1fr}
 .case-add-form{grid-template-columns:1fr 1fr;gap:6px}
-.week-grid{grid-template-columns:1fr}
-.week-grid>.day-card{flex:1 1 100%;min-width:0;width:auto}
-.day-tracks{grid-template-columns:1fr}
+.week-grid{grid-template-columns:1fr;gap:12px}
+.week-grid>.day-card{min-width:0;width:auto}
+.day-tracks{grid-template-columns:1fr;gap:8px}
+.task-add-bottom{flex-wrap:wrap;justify-content:flex-start}
+.type-select,.task-add-track{max-width:46%}
   #view-strategy .strategy-grid{grid-template-columns:1fr}
 .section-title{font-size:17px}
 #tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;height:calc(var(--tabbar-h) + env(safe-area-inset-bottom));background:var(--bg-1);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);z-index:100}
