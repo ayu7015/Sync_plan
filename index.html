@@ -1497,18 +1497,16 @@ const CloudSync={
       if(!r.ok)throw new Error('HTTP '+r.status);
       const data=await r.json();
       const sha=data.sha;
-      if(sha===this.meta.sha){if(this.status==='connecting')this.setStatus('online');return}
-      this.meta.sha=sha;this.saveMeta();
+      if(sha&&sha===this.meta.sha){if(this.status==='connecting')this.setStatus('online');return}
       const content=atob((data.content||'').replace(/\n/g,''));
       if(!content){if(this.status==='connecting')this.setStatus('online');return}
       const payload=JSON.parse(content);
-      if(this.isPushing&&payload.updatedAtBy===this.deviceId&&payload.version===this.pendingVersion){this.localVersion=payload.version;this.isPushing=false;this.setStatus('synced');return}
-      if(payload.version<=this.localVersion){if(this.status==='connecting')this.setStatus('online');return}
-      this.localVersion=payload.version;
+      if(this.isPushing&&payload.updatedAtBy===this.deviceId&&payload.version===this.pendingVersion){this.localVersion=payload.version;if(sha){this.meta.sha=sha;this.saveMeta()}this.isPushing=false;this.setStatus('synced');return}
+      this.localVersion=Math.max(this.localVersion,payload.version||0);
       try{
-        await this.applyPayload(payload);
-        this.setStatus('updated');
-        if(!isInitial)showToast('已同步其他设备的更新','success');
+        const changed=await this.applyPayload(payload);
+        if(sha){this.meta.sha=sha;this.saveMeta()}
+        if(changed){this.setStatus('updated');if(!isInitial)showToast('已同步其他设备的更新','success')}
         else if(this.status==='connecting')this.setStatus('online');
       }catch(e){console.error('apply remote error',e);this.setStatus('error');showToast('同步数据解密失败：各端同步密码需一致','error')}
     }catch(e){console.error('poll error',e);if(this.status!=='syncing')this.setStatus('error')}
@@ -1518,18 +1516,20 @@ const CloudSync={
     if(salt&&salt!==this.meta.salt){this.meta.salt=salt;this.saveMeta();this.cryptoKey=await deriveSyncKey(localStorage.getItem(SYNC_KEY_SECRET),this.meta.salt)}
     const plaintext=await syncDecrypt(this.cryptoKey,payload.iv,payload.ct);
     const data=validateData(JSON.parse(plaintext));
-    this.applyRemote(data);
+    return this.applyRemote(data);
   },
   applyRemote(data){
     this.applyingRemote=true;
+    let changed=false;
     try{
       const localData=Store.currentData();
       const base=this._baseline||{};
       const merged=mergeData(base,data,localData);
-      Store.commitImport(merged);
+      if(JSON.stringify(merged)!==JSON.stringify(localData)){Store.commitImport(merged);changed=true}
       this.setBaseline(merged,Math.max(this.baseVersion,this.localVersion));
     }finally{this.applyingRemote=false}
-    loadState();renderAll();
+    if(changed){loadState();renderAll()}
+    return changed;
   },
   push(immediate){
     if(this.applyingRemote||!this.config.enabled||!this.cryptoKey)return;
@@ -1613,12 +1613,17 @@ const CloudSync={
       if(rd.content&&rd.content.sha){this.meta.sha=rd.content.sha;this.saveMeta()}
       this.localVersion=this.pendingVersion;this.saveMeta();
       this.setBaseline(payloadData,this.pendingVersion);
+      this.isPushing=false;
       this.setStatus('synced');
     }catch(e){console.error('push error',e);this.isPushing=false;this.setStatus('error');showToast('同步上传失败：'+(e.message||e),'error')}
   },
   disconnect(){this.stopPoll();this.cryptoKey=null;this.setStatus('local')}
 };
 function applySyncUrlParams(){try{const p=new URLSearchParams(location.search);const o=p.get('sync_owner'),r=p.get('sync_repo'),t=p.get('sync_token'),m=p.get('sync_room');if(o||r||t||m){CloudSync.loadConfig();if(o)CloudSync.config.owner=o;if(r)CloudSync.config.repo=r;if(t&&t.length>=20)CloudSync.config.token=t;if(m)CloudSync.config.roomId=m.toUpperCase();CloudSync.saveConfig();history.replaceState(null,'',location.pathname)}}catch(e){}}
+function syncKick(){if(CloudSync.config.enabled&&CloudSync.cryptoKey&&!CloudSync.isPushing)CloudSync.poll()}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')syncKick()});
+window.addEventListener('focus',syncKick);
+window.addEventListener('online',syncKick);
 
 /* ========== Pointer + keyboard sorting (whole tree shell owns pointer until release/cancel) ========== */
 function bindSortController(root,onCommit,opts){
