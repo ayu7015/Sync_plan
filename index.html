@@ -684,6 +684,7 @@ const KEYS={
   settings:PREFIX+'settings',
   backup:PREFIX+'backup',
   init:PREFIX+'init',
+  demo:PREFIX+'demo_seed',
   pin:PREFIX+'pin'
 };
 const COLLAPSE_KEY=PREFIX+'collapse_preferences';
@@ -1352,6 +1353,8 @@ function mergeData(base,server,local){
 }
 // === MERGE END ===
 
+let SEEDING=false; // 首次写入演示样例期间置 true，避免被误判成"用户已编辑"
+
 const Store={
   get(key,def){
     try{
@@ -1378,6 +1381,8 @@ const Store={
     try{
       const str=JSON.stringify(val);
       localStorage.setItem(key,str);
+      // 任何真实改动都意味着本地已不再是"纯演示样例"，撤掉标记
+      if(!SEEDING&&key!==KEYS.backup&&key!==KEYS.init&&key!==KEYS.demo){try{localStorage.removeItem(KEYS.demo)}catch(e){}}
       if(key!==KEYS.backup&&key!==KEYS.init){try{this.saveSnapshot(this.currentData())}catch(e){console.warn('Backup snapshot failed',e)}}
       if(key!==KEYS.backup&&key!==KEYS.init&&typeof CloudSync!=='undefined'){CloudSync.push()}
       return true;
@@ -1523,9 +1528,16 @@ const CloudSync={
     let changed=false;
     try{
       const localData=Store.currentData();
-      const base=this._baseline||{};
-      const merged=mergeData(base,data,localData);
+      // 本地若仍是首次初始化写入的演示样例（用户未编辑过、且从未同步过），
+      // 直接采用云端数据。不能走三路合并——合并会把样例任务当成"本地新增"永久保留，
+      // 导致换新浏览器/清缓存后，样例内容被反复灌进真实数据（历史故障根因）。
+      const isDemoSeed=(localStorage.getItem(KEYS.demo)==='1')&&!(this.meta&&this.meta.sha);
+      const merged=isDemoSeed?data:mergeData(this._baseline||{},data,localData);
       if(JSON.stringify(merged)!==JSON.stringify(localData)){Store.commitImport(merged);changed=true}
+      if(isDemoSeed){
+        try{localStorage.removeItem(KEYS.demo)}catch(e){}
+        showToast('已用云端数据替换本地的演示样例','success');
+      }
       this.setBaseline(merged,Math.max(this.baseVersion,this.localVersion));
     }finally{this.applyingRemote=false}
     if(changed){loadState();renderAll()}
@@ -1569,6 +1581,14 @@ const CloudSync={
         }
       }catch(e){}
       this.localVersion=Math.max(this.localVersion,serverVersion);
+      // 本地若仍是首次初始化写入的演示样例、且从未同步过：绝不上传，直接采用云端数据。
+      // 否则样例会被下面的 mergeData 当成"仅本地新增"永久塞进真实数据（2026-11-18 事故根因）。
+      if((localStorage.getItem(KEYS.demo)==='1')&&!(this.meta&&this.meta.sha)){
+        this.isPushing=false;
+        if(serverData){await this.applyRemote(serverData);this.setStatus('synced')}
+        else this.setStatus('online');
+        return;
+      }
       // 若服务端有比基线更新的数据则合并后再推送；否则直接推送本地。版本号仍以服务端为基准单调递增
       const localData=Store.currentData();
       const base=this._baseline||{};
@@ -1688,6 +1708,7 @@ function loadState(){
   state.settings=data.settings;
   if(!Array.isArray(state.settings.customTaskTypes))state.settings.customTaskTypes=[];
   migrateFixedActions();
+  purgeLegacyDemoArtifacts();
 }
 function migrateFixedActions(){
   const block=state.strategy&&state.strategy.blocks&&state.strategy.blocks.find(b=>b.id==='fixed-actions');
@@ -1728,40 +1749,30 @@ function generateDemoData(){
   // Weekly tasks for current week
   const currentWeekTasks=[
     // Monday
-    {id:uid(),day:1,text:'立案象山案件',type:'work',done:true,time:''},
-    {id:uid(),day:1,text:'撰写程超案件公众号文章',type:'ip',done:true,time:''},
+    {id:uid(),day:1,text:'整理本周案卷材料',type:'work',done:true,time:''},
+    {id:uid(),day:1,text:'撰写一篇专业文章',type:'ip',done:true,time:''},
     // Tuesday
-    {id:uid(),day:2,text:'联系贺法官跟进调解',type:'work',done:true,time:''},
-    {id:uid(),day:2,text:'跟进贺帮美执行案件',type:'work',done:true,time:''},
-    {id:uid(),day:2,text:'学习毛选',type:'study',done:true,time:''},
-    {id:uid(),day:2,text:'跑步',type:'exercise',done:true,time:''},
+    {id:uid(),day:2,text:'联系客户确认进展',type:'work',done:true,time:''},
+    {id:uid(),day:2,text:'阅读一小时',type:'study',done:true,time:''},
+    {id:uid(),day:2,text:'跑步 30 分钟',type:'exercise',done:true,time:''},
     // Wednesday
-    {id:uid(),day:3,text:'复习李乾案件开庭',type:'work',done:true,time:''},
-    {id:uid(),day:3,text:'报名专业委员会',type:'work',done:true,time:''},
-    {id:uid(),day:3,text:'归档2个案件',type:'work',done:true,time:''},
-    {id:uid(),day:3,text:'整理焦虑来源',type:'study',done:true,time:''},
+    {id:uid(),day:3,text:'归档已结案件',type:'work',done:true,time:''},
+    {id:uid(),day:3,text:'学习一节专业课程',type:'study',done:true,time:''},
     // Thursday
-    {id:uid(),day:4,text:'整理焦虑及努力方向',type:'study',done:true,time:''},
-    {id:uid(),day:4,text:'李乾案件开庭',type:'work',done:true,time:'14:00'},
-    {id:uid(),day:4,text:'学习毛选视频',type:'study',done:true,time:''},
-    {id:uid(),day:4,text:'跑步',type:'exercise',done:true,time:''},
+    {id:uid(),day:4,text:'开庭：示例案件',type:'work',done:true,time:'14:00'},
+    {id:uid(),day:4,text:'整理学习笔记',type:'study',done:true,time:''},
     // Friday
-    {id:uid(),day:5,text:'整理毛选学习心得',type:'study',done:true,time:''},
-    {id:uid(),day:5,text:'整理微信好友分组',type:'work',done:true,time:''},
-    {id:uid(),day:5,text:'研究学习演讲',type:'study',done:true,time:''},
-    // Saturday (some not done -> overdue if today is Sunday)
-    {id:uid(),day:6,text:'公众号文章一篇',type:'ip',done:todayDay>6,time:''},
-    {id:uid(),day:6,text:'研究咨询报告产品设计',type:'work',done:todayDay>6,time:''},
-    {id:uid(),day:6,text:'晚上程超请客吃饭',type:'work',done:todayDay>6,time:''},
-    // Sunday (today)
-    {id:uid(),day:7,text:'研究普法短视频文案设计',type:'ip',done:false,important:false,time:''},
-    {id:uid(),day:7,text:'拍摄普法短视频',type:'ip',done:false,important:false,time:''},
-    {id:uid(),day:7,text:'拍摄生活短视频',type:'ip',done:false,important:false,time:''},
+    {id:uid(),day:5,text:'复盘本周工作',type:'work',done:true,time:''},
+    // Saturday
+    {id:uid(),day:6,text:'发布一篇公众号文章',type:'ip',done:todayDay>6,time:''},
+    {id:uid(),day:6,text:'拍摄并剪辑短视频',type:'ip',done:todayDay>6,time:''},
+    // Sunday
+    {id:uid(),day:7,text:'规划下周重点',type:'work',done:false,important:false,time:''},
   ];
   
   // Previous week with one overdue item
   const prevWeekTasks=[
-    {id:uid(),day:5,text:'看育儿书籍',type:'study',done:false,important:false,time:''},
+    {id:uid(),day:5,text:'阅读专业书籍',type:'study',done:false,important:false,time:''},
   ];
   
   return{
@@ -1813,10 +1824,10 @@ function generateDemoData(){
       {weekKey:getWeekKey(thisMonday),weekStart:fmtDate(thisMonday),tasks:currentWeekTasks},
     ],
     cases:{cases:[
-      {id:uid(),name:'李乾撤销权案件',category:'court',date:'2026-08-25',time:'09:00',note:'上午9:00开庭',done:false},
-      {id:uid(),name:'王稞和邬德美银行账户保全',category:'preservation',date:'2027-03-05',time:'',note:'2026.3.6-2027.3.5，到期前申请续保',done:false},
-      {id:uid(),name:'邬德美房产保全',category:'preservation',date:'2027-04-09',time:'',note:'2024.4.10-2027.4.9，2027年3月初关注续保',done:false},
-      {id:uid(),name:'张志英房产保全',category:'preservation',date:'2029-04-02',time:'',note:'2026.4.3-2029.4.2',done:false},
+      {id:uid(),name:'示例：合同纠纷案开庭',category:'court',date:'2026-08-25',time:'09:00',note:'上午9:00开庭',done:false},
+      {id:uid(),name:'示例：账户保全',category:'preservation',date:'2027-03-05',time:'',note:'保全到期前 30 天申请续保',done:false},
+      {id:uid(),name:'示例：房产保全',category:'preservation',date:'2027-04-09',time:'',note:'到期前 1 个月关注续保',done:false},
+      {id:uid(),name:'示例：长期财产保全',category:'preservation',date:'2029-04-02',time:'',note:'长期保全，逐年核对期限',done:false},
     ]},
     strategy:{
       goals:[
@@ -1841,13 +1852,36 @@ function generateDemoData(){
         {id:uid(),days:[7],time:'14:00',type:'ip',enabled:true,important:false,text:'撰写公众号文章',children:[]},
       ],
       topics:[
-        {id:uid(),text:'宝妈必看：如何管理好孩子的账户',status:'idea'},
-        {id:uid(),text:'出生礼金、周岁礼金的法律性质',status:'idea'},
-        {id:uid(),text:'离婚协议撤销权问题',status:'idea'},
-        {id:uid(),text:'打胎协议约定违约金的性质',status:'idea'},
+        {id:uid(),text:'示例选题：合同违约金如何约定',status:'idea'},
+        {id:uid(),text:'示例选题：婚姻家事常见误区',status:'idea'},
+        {id:uid(),text:'示例选题：财产保全实务要点',status:'idea'},
+        {id:uid(),text:'示例选题：执行案件推进技巧',status:'idea'},
       ]
     }
   };
+}
+
+/* ========== 一次性清理：早期"演示样例混入真实数据"事故 ========== */
+// 成因：新浏览器首次打开会写入内置演示样例；随后配置云同步时三路合并把样例当成
+// "仅本地新增"永久保留，导致样例任务被反复灌进真实数据。
+// 此处只删「id 生成于该次播种的同一分钟 + 文本命中旧样例清单 + 无来源标记」的条目，真实数据不受影响。
+function purgeLegacyDemoArtifacts(){
+  const T0=Date.parse('2026-11-18T02:12:00Z'),T1=Date.parse('2026-11-18T02:16:00Z');
+  const LEGACY=['立案象山案件','撰写程超案件公众号文章','联系贺法官跟进调解','跟进贺帮美执行案件','学习毛选','跑步','复习李乾案件开庭','报名专业委员会','归档2个案件','整理焦虑来源','整理焦虑及努力方向','李乾案件开庭','学习毛选视频','整理毛选学习心得','整理微信好友分组','研究学习演讲','公众号文章一篇','研究咨询报告产品设计','晚上程超请客吃饭','研究普法短视频文案设计','拍摄普法短视频','拍摄生活短视频','看育儿书籍'];
+  let removed=0;
+  const scan=arr=>{
+    for(let i=arr.length-1;i>=0;i--){
+      const t=arr[i];
+      const ts=parseInt(String(t.id).slice(0,8),36);
+      const hit=!isNaN(ts)&&ts>=T0&&ts<=T1&&LEGACY.indexOf(String(t.text).trim())>-1&&!t.sourceFixedId&&!t.sourceCaseId&&!t.sourceRollover;
+      if(hit){arr.splice(i,1);removed++;continue}
+      if(Array.isArray(t.children)&&t.children.length)scan(t.children);
+    }
+  };
+  (state.weekly||[]).forEach(w=>{if(Array.isArray(w.tasks))scan(w.tasks)});
+  // 不加"只跑一次"标记：清理结果要能持续传播到云端，直到各端与云端都收敛为止。
+  // 条目全部清干净后 removed 恒为 0，此函数变成纯扫描（微秒级）。
+  if(removed){saveWeekly();showToast('已清除 '+removed+' 条混入的演示样例','success')}
 }
 
 /* ========== Init ========== */
@@ -1860,14 +1894,19 @@ function initApp(){
   }
   
   // First time init
+  let seeded=false;
   if(!localStorage.getItem(KEYS.init)){
     const demo=generateDemoData();
-    Store.set(KEYS.monthly,demo.monthly);
-    Store.set(KEYS.weekly,demo.weekly);
-    Store.set(KEYS.cases,demo.cases);
-    Store.set(KEYS.strategy,demo.strategy);
-    Store.set(KEYS.settings,{lastBackupReminder:0,lastExport:0});
-    localStorage.setItem(KEYS.init,'1');
+    SEEDING=true;
+    try{
+      Store.set(KEYS.monthly,demo.monthly);
+      Store.set(KEYS.weekly,demo.weekly);
+      Store.set(KEYS.cases,demo.cases);
+      Store.set(KEYS.strategy,demo.strategy);
+      Store.set(KEYS.settings,{lastBackupReminder:0,lastExport:0});
+      localStorage.setItem(KEYS.init,'1');
+    }finally{SEEDING=false}
+    seeded=true;
   }
   
   loadState();
@@ -1875,6 +1914,8 @@ function initApp(){
   let _cw=state.weekly.find(w=>weekMatches(w,_ck));
   if(!_cw){_cw={weekKey:_ck,weekStart:fmtDate(_cm),tasks:[],dismissedFixed:[]};state.weekly.push(_cw);rolloverToWeek(_cw);}
   syncWeeklyFromSources();
+  // 所有初始化写入（含固定动作投影）完成后再打标记：本地仍是"纯演示样例"
+  if(seeded){try{localStorage.setItem(KEYS.demo,'1')}catch(e){}}
   applySyncUrlParams();
   CloudSync.init();
   renderNav();
@@ -3324,14 +3365,18 @@ function doClearAll(){
   Store.remove(KEYS.init);
   
   const demo=generateDemoData();
-  Store.set(KEYS.monthly,demo.monthly);
-  Store.set(KEYS.weekly,demo.weekly);
-  Store.set(KEYS.cases,demo.cases);
-  Store.set(KEYS.strategy,demo.strategy);
-  Store.set(KEYS.settings,{lastBackupReminder:0,lastExport:0});
-  localStorage.setItem(KEYS.init,'1');
+  SEEDING=true;
+  try{
+    Store.set(KEYS.monthly,demo.monthly);
+    Store.set(KEYS.weekly,demo.weekly);
+    Store.set(KEYS.cases,demo.cases);
+    Store.set(KEYS.strategy,demo.strategy);
+    Store.set(KEYS.settings,{lastBackupReminder:0,lastExport:0});
+    localStorage.setItem(KEYS.init,'1');
+  }finally{SEEDING=false}
   
   loadState();
+  try{localStorage.setItem(KEYS.demo,'1')}catch(e){}
   renderAll();
   hideModal();
   showToast('已清空并恢复示例数据','success');
