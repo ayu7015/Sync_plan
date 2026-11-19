@@ -1868,12 +1868,22 @@ function generateDemoData(){
 function purgeLegacyDemoArtifacts(){
   const T0=Date.parse('2026-11-18T02:12:00Z'),T1=Date.parse('2026-11-18T02:16:00Z');
   const LEGACY=['立案象山案件','撰写程超案件公众号文章','联系贺法官跟进调解','跟进贺帮美执行案件','学习毛选','跑步','复习李乾案件开庭','报名专业委员会','归档2个案件','整理焦虑来源','整理焦虑及努力方向','李乾案件开庭','学习毛选视频','整理毛选学习心得','整理微信好友分组','研究学习演讲','公众号文章一篇','研究咨询报告产品设计','晚上程超请客吃饭','研究普法短视频文案设计','拍摄普法短视频','拍摄生活短视频','看育儿书籍'];
+  // 演示样例若被「固定动作投影」复用，会带上 sourceFixedId/manual 标记而躲过清理。
+  // 把豁免条件改为「模板仍然存在才算正当实例」：模板已被删除的孤儿实例照常清理。
+  const aliveTemplates=new Set();
+  try{
+    const blocks=(state.strategy&&Array.isArray(state.strategy.blocks))?state.strategy.blocks:[];
+    const fa=blocks.find(b=>b&&b.id==='fixed-actions');
+    const kids=(fa&&Array.isArray(fa.children))?fa.children:[];
+    kids.forEach(c=>{if(c&&c.id)aliveTemplates.add(c.id)});
+  }catch(e){}
   let removed=0;
   const scan=arr=>{
     for(let i=arr.length-1;i>=0;i--){
       const t=arr[i];
       const ts=parseInt(String(t.id).slice(0,8),36);
-      const hit=!isNaN(ts)&&ts>=T0&&ts<=T1&&LEGACY.indexOf(String(t.text).trim())>-1&&!t.sourceFixedId&&!t.sourceCaseId&&!t.sourceRollover;
+      const orphanFixed=!!t.sourceFixedId&&!aliveTemplates.has(t.sourceFixedId);
+      const hit=!isNaN(ts)&&ts>=T0&&ts<=T1&&LEGACY.indexOf(String(t.text).trim())>-1&&(!t.sourceFixedId||orphanFixed)&&!t.sourceCaseId&&!t.sourceRollover;
       if(hit){arr.splice(i,1);removed++;continue}
       if(Array.isArray(t.children)&&t.children.length)scan(t.children);
     }
@@ -3313,6 +3323,35 @@ function exportJSON(){
   showToast('已导出备份','success');
 }
 
+// 统计数据的新鲜度与规模：所有 id 均为 uid()=Date.now().toString(36)，取前 8 位可还原创建时刻。
+// 用于导入前的时间戳校验，以及排查「这批数据是什么时候进来的」。
+function dataFreshness(data){
+  let total=0,newest=0,oldest=0;
+  const touch=id=>{
+    const ts=parseInt(String(id==null?'':id).slice(0,8),36);
+    if(!isNaN(ts)&&ts>1430000000000&&ts<4102444800000){
+      total++;
+      if(ts>newest)newest=ts;
+      if(!oldest||ts<oldest)oldest=ts;
+    }
+  };
+  const walk=arr=>{if(!Array.isArray(arr))return;arr.forEach(x=>{if(!x)return;touch(x.id);if(Array.isArray(x.children))walk(x.children);});};
+  if(data&&Array.isArray(data.weekly))data.weekly.forEach(w=>{if(w&&Array.isArray(w.tasks))walk(w.tasks)});
+  if(data&&data.monthly&&Array.isArray(data.monthly.boards))data.monthly.boards.forEach(b=>{if(b&&Array.isArray(b.goals))walk(b.goals)});
+  if(data&&data.cases&&Array.isArray(data.cases.cases))walk(data.cases.cases);
+  if(data&&data.strategy&&Array.isArray(data.strategy.blocks))data.strategy.blocks.forEach(b=>{if(b&&Array.isArray(b.children))walk(b.children)});
+  if(data&&Array.isArray(data.inspirations))walk(data.inspirations);
+  return {total:total,newest:newest,oldest:oldest};
+}
+
+function doImportCommit(data){
+  Store.commitImport(data);
+  loadState();
+  renderAll();
+  checkBackupReminder();
+  showToast('导入成功，已事务恢复全部计划数据','success');
+}
+
 function importJSON(event){
   const file=event.target.files[0];
   if(!file)return;
@@ -3325,11 +3364,28 @@ function importJSON(event){
       if(payload.version!==1&&payload.version!==BACKUP_VERSION)throw new Error('不支持的备份版本');
       if(payload.version===BACKUP_VERSION&&payload.format!==BACKUP_FORMAT)throw new Error('备份格式标识不正确');
       const data={monthly:payload.monthly,weekly:payload.weekly,cases:payload.cases,strategy:payload.strategy,inspirations:payload.inspirations||[],settings:payload.settings||state.settings};
-      Store.commitImport(data);
-      loadState();
-      renderAll();
-      checkBackupReminder();
-      showToast('导入成功，已事务恢复全部计划数据','success');
+      // 时间戳校验：比对备份与当前数据的新鲜度和规模。导入是整体覆盖，若备份明显更旧或更少，
+      // 必须让用户显式确认，避免旧备份静默覆盖新数据、再随云同步扩散到其他设备。
+      const cand=validateData(data);
+      const info=dataFreshness(cand);
+      const cur=dataFreshness(Store.currentData());
+      const stale=(info.newest>0&&cur.newest>0&&info.newest<cur.newest-3*864e5)||(cur.total>=20&&info.total<cur.total*0.5);
+      if(stale){
+        const fmtTs=ts=>ts?fmtDate(new Date(ts)):'未知';
+        showModal({
+          title:'这份备份比当前数据更旧',
+          body:'<strong style="color:var(--danger-l)">导入会完全覆盖当前数据；若已开启云同步，覆盖结果还会推送到其他设备。</strong><br><br>'+
+               '备份文件：最新记录 <strong>'+fmtTs(info.newest)+'</strong>，共 <strong>'+info.total+'</strong> 条<br>'+
+               '当前数据：最新记录 <strong>'+fmtTs(cur.newest)+'</strong>，共 <strong>'+cur.total+'</strong> 条<br><br>'+
+               '除非你确实想用这份备份回滚，否则请点「取消」。',
+          actions:[
+            {text:'取消',class:'btn-ghost',action:hideModal},
+            {text:'仍要导入',class:'btn-danger',action:()=>{doImportCommit(data);}}
+          ]
+        });
+        return;
+      }
+      doImportCommit(data);
     }catch(err){
       showToast('导入失败：'+err.message,'error');
     }
